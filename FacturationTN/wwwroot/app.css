@@ -58,3 +58,31 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* ─── Dashboard ─── */
+.kpi-card {
+    border-left: 4px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.1) !important;
+}
+
+.kpi-card:nth-child(1) { border-left-color: var(--bs-primary); }
+.kpi-card:nth-child(2) { border-left-color: var(--bs-success); }
+.kpi-card:nth-child(3) { border-left-color: var(--bs-warning); }
+.kpi-card:nth-child(4) { border-left-color: var(--bs-danger); }
+.kpi-card:nth-child(5) { border-left-color: var(--bs-info); }
+
+.chart-placeholder {
+    min-height: 140px;
+    border: 2px dashed #dee2e6;
+    border-radius: .375rem;
+    background-color: #f8f9fa;
+}
+
+.chart-placeholder-lg {
+    min-height: 220px;
+}

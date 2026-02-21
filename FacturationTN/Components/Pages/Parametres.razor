@@ -1,0 +1,46 @@
+@page "/parametres"
+
+<PageTitle>Paramètres</PageTitle>
+
+<h1 class="mb-4">Paramètres</h1>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">Timbre fiscal</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Montant du timbre fiscal (TND)</label>
+                    <input type="number" class="form-control" value="1.000" step="0.001" disabled />
+                </div>
+                <p class="text-muted small mb-0">
+                    Paramètre appliqué automatiquement à chaque facture.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">Taux de TVA</div>
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Libellé</th>
+                            <th class="text-end">Taux</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Exonéré</td><td class="text-end">0 %</td></tr>
+                        <tr><td>Réduit</td><td class="text-end">7 %</td></tr>
+                        <tr><td>Intermédiaire</td><td class="text-end">13 %</td></tr>
+                        <tr><td>Normal</td><td class="text-end">19 %</td></tr>
+                    </tbody>
+                </table>
+                <p class="text-muted small mt-2 mb-0">
+                    Taux de TVA tunisiens — liés à chaque produit.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
