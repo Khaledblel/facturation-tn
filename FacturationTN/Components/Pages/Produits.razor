@@ -1,19 +1,200 @@
 @page "/produits"
+@rendermode InteractiveServer
 
 <PageTitle>Produits</PageTitle>
 
-<h1 class="mb-4">Gestion des produits</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Gestion des produits</h1>
+    <button class="btn btn-primary" @onclick="ShowCreateForm">
+        <span class="me-1">+</span> Nouveau produit
+    </button>
+</div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <span class="fw-semibold">Liste des produits</span>
-        <button class="btn btn-primary btn-sm" disabled>
-            + Nouveau produit
-        </button>
-    </div>
-    <div class="card-body">
-        <p class="text-muted text-center py-5 mb-0">
-            Module produits — à implémenter (CRUD, taux TVA par produit).
-        </p>
+@* ── Search / Filter Bar ─────────────────────────────────────── *@
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white">🔍</span>
+                    <input type="text" class="form-control" placeholder="Rechercher par référence, désignation..."
+                           @bind="searchTerm" @bind:event="oninput" />
+                    @if (!string.IsNullOrEmpty(searchTerm))
+                    {
+                        <button class="btn btn-outline-secondary" @onclick="ClearSearch">✕</button>
+                    }
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select form-select-sm" @bind="filterTva">
+                    <option value="-1">Tous les taux TVA</option>
+                    <option value="0">Exonéré — 0 %</option>
+                    <option value="7">Réduit — 7 %</option>
+                    <option value="13">Intermédiaire — 13 %</option>
+                    <option value="19">Normal — 19 %</option>
+                </select>
+            </div>
+            <div class="col-md-3 text-end">
+                <span class="text-muted small">@filteredCount produit(s) trouvé(s)</span>
+            </div>
+        </div>
     </div>
 </div>
+
+@* ── Product Table ────────────────────────────────────────────── *@
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Référence</th>
+                        <th>Désignation</th>
+                        <th class="text-end">Prix unitaire HT</th>
+                        <th class="text-center">Taux TVA</th>
+                        <th class="text-end">Prix TTC</th>
+                        <th class="text-center" style="width: 120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (filteredCount == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                @if (!string.IsNullOrEmpty(searchTerm) || filterTva >= 0)
+                                {
+                                    <span>Aucun produit ne correspond aux critères de recherche.</span>
+                                }
+                                else
+                                {
+                                    <span>Aucun produit enregistré. Cliquez sur <strong>Nouveau produit</strong> pour commencer.</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @* TODO: @foreach (var produit in filteredProduits) { ... } *@
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @* ── Pagination ────────────────────────────────────────────── *@
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
+        <span class="text-muted small">Affichage @currentStart–@currentEnd sur @filteredCount résultats</span>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled"><a class="page-link" href="#">«</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item disabled"><a class="page-link" href="#">»</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+@* ── Create / Edit Modal ──────────────────────────────────────── *@
+@if (showForm)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(isEditing ? "Modifier le produit" : "Nouveau produit")</h5>
+                    <button type="button" class="btn-close" @onclick="HideForm"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Référence <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Ex: PRD-001" @bind="formReference" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Désignation <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Nom du produit" @bind="formDesignation" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Prix unitaire HT <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" step="0.001" min="0"
+                                       placeholder="0.000" @bind="formPrixHT" @bind:event="oninput" />
+                                <span class="input-group-text">TND</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Taux TVA <span class="text-danger">*</span></label>
+                            <select class="form-select" @bind="formTauxTva" @bind:event="onchange">
+                                <option value="0">Exonéré — 0 %</option>
+                                <option value="7">Réduit — 7 %</option>
+                                <option value="13">Intermédiaire — 13 %</option>
+                                <option value="19" selected>Normal — 19 %</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Prix TTC <span class="text-muted">(calculé)</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control bg-light" readonly
+                                       value="@ComputedPrixTTC.ToString("N3")" />
+                                <span class="input-group-text">TND</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="HideForm">Annuler</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveProduit">
+                        @(isEditing ? "Mettre à jour" : "Enregistrer")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    // ── Search & filter state ──
+    private string searchTerm = string.Empty;
+    private int filterTva = -1;
+    private int filteredCount = 0;
+    private int currentStart = 0;
+    private int currentEnd = 0;
+
+    // ── Form state ──
+    private bool showForm = false;
+    private bool isEditing = false;
+    private string formReference = string.Empty;
+    private string formDesignation = string.Empty;
+    private decimal formPrixHT = 0;
+    private int formTauxTva = 19;
+
+    // ── Computed ──
+    private decimal ComputedPrixTTC => formPrixHT * (1 + formTauxTva / 100m);
+
+    private void ShowCreateForm()
+    {
+        isEditing = false;
+        ResetForm();
+        showForm = true;
+    }
+
+    private void HideForm()
+    {
+        showForm = false;
+    }
+
+    private void ClearSearch()
+    {
+        searchTerm = string.Empty;
+    }
+
+    private void ResetForm()
+    {
+        formReference = string.Empty;
+        formDesignation = string.Empty;
+        formPrixHT = 0;
+        formTauxTva = 19;
+    }
+
+    private void SaveProduit()
+    {
+        // TODO: call IProduitService to persist
+        HideForm();
+    }
+}

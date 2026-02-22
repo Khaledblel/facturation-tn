@@ -1,46 +1,224 @@
 @page "/parametres"
+@rendermode InteractiveServer
 
 <PageTitle>Paramètres</PageTitle>
 
 <h1 class="mb-4">Paramètres</h1>
 
-<div class="row g-3">
+<div class="row g-4">
+    @* ── Timbre Fiscal ────────────────────────────────────────── *@
     <div class="col-lg-6">
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm h-100">
             <div class="card-header bg-white fw-semibold">Timbre fiscal</div>
             <div class="card-body">
                 <div class="mb-3">
-                    <label class="form-label">Montant du timbre fiscal (TND)</label>
-                    <input type="number" class="form-control" value="1.000" step="0.001" disabled />
+                    <label class="form-label">Montant du timbre fiscal <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" step="0.001" min="0"
+                               @bind="montantTimbre" />
+                        <span class="input-group-text">TND</span>
+                    </div>
+                    <div class="form-text">Ce montant sera ajouté automatiquement à chaque facture.</div>
                 </div>
-                <p class="text-muted small mb-0">
-                    Paramètre appliqué automatiquement à chaque facture.
-                </p>
+                @if (timbreSaved)
+                {
+                    <div class="alert alert-success alert-dismissible fade show py-2 small" role="alert">
+                        Timbre fiscal mis à jour avec succès.
+                        <button type="button" class="btn-close btn-close-sm" @onclick="() => timbreSaved = false"></button>
+                    </div>
+                }
+                <button class="btn btn-primary btn-sm" @onclick="SaveTimbre">Enregistrer</button>
             </div>
         </div>
     </div>
+
+    @* ── Taux de TVA ──────────────────────────────────────────── *@
     <div class="col-lg-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-semibold">Taux de TVA</div>
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">Taux de TVA en vigueur</div>
             <div class="card-body">
-                <table class="table table-sm mb-0">
+                <table class="table table-sm table-hover mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>Libellé</th>
                             <th class="text-end">Taux</th>
+                            <th class="text-center">Statut</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>Exonéré</td><td class="text-end">0 %</td></tr>
-                        <tr><td>Réduit</td><td class="text-end">7 %</td></tr>
-                        <tr><td>Intermédiaire</td><td class="text-end">13 %</td></tr>
-                        <tr><td>Normal</td><td class="text-end">19 %</td></tr>
+                        <tr>
+                            <td>Exonéré</td>
+                            <td class="text-end">0 %</td>
+                            <td class="text-center"><span class="badge bg-success-subtle text-success">Actif</span></td>
+                        </tr>
+                        <tr>
+                            <td>Réduit</td>
+                            <td class="text-end">7 %</td>
+                            <td class="text-center"><span class="badge bg-success-subtle text-success">Actif</span></td>
+                        </tr>
+                        <tr>
+                            <td>Intermédiaire</td>
+                            <td class="text-end">13 %</td>
+                            <td class="text-center"><span class="badge bg-success-subtle text-success">Actif</span></td>
+                        </tr>
+                        <tr>
+                            <td>Normal</td>
+                            <td class="text-end">19 %</td>
+                            <td class="text-center"><span class="badge bg-success-subtle text-success">Actif</span></td>
+                        </tr>
                     </tbody>
                 </table>
-                <p class="text-muted small mt-2 mb-0">
-                    Taux de TVA tunisiens — liés à chaque produit.
-                </p>
+                <div class="alert alert-info py-2 small mt-3 mb-0">
+                    <strong>ℹ️</strong> Taux définis selon la législation fiscale tunisienne. Modification non autorisée.
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+@* ── Informations de l'entreprise ─────────────────────────────── *@
+<div class="row g-4 mt-1">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">Informations de l'entreprise</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @* ── Logo Upload ──────────────────────────── *@
+                    <div class="col-12 mb-2">
+                        <label class="form-label">Logo de l'entreprise</label>
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="logo-preview border rounded d-flex align-items-center justify-content-center"
+                                 style="width: 120px; height: 120px; min-width: 120px; background-color: #f8f9fa; overflow: hidden;">
+                                @if (!string.IsNullOrEmpty(logoPreviewUrl))
+                                {
+                                    <img src="@logoPreviewUrl" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted small text-center px-2">Aucun logo</span>
+                                }
+                            </div>
+                            <div>
+                                <InputFile OnChange="OnLogoSelected" accept=".png,.jpg,.jpeg,.svg"
+                                           class="form-control form-control-sm" style="max-width: 280px;" />
+                                <div class="form-text">PNG, JPG ou SVG. Taille max : 2 Mo. Recommandé : 200×200 px.</div>
+                                @if (!string.IsNullOrEmpty(logoError))
+                                {
+                                    <div class="text-danger small mt-1">@logoError</div>
+                                }
+                                @if (!string.IsNullOrEmpty(logoPreviewUrl))
+                                {
+                                    <button class="btn btn-outline-danger btn-sm mt-1" @onclick="RemoveLogo">Supprimer le logo</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Raison sociale <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" placeholder="Nom de votre entreprise"
+                               @bind="entrepriseNom" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Matricule fiscale <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" placeholder="0000000/X/X/X000"
+                               @bind="entrepriseMatricule" />
+                        <div class="form-text">Format tunisien : 7 chiffres / lettre / lettre / lettre + 3 chiffres</div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Adresse <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" placeholder="Rue, ville, code postal"
+                               @bind="entrepriseAdresse" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Téléphone</label>
+                        <input type="tel" class="form-control" placeholder="+216 XX XXX XXX"
+                               @bind="entrepriseTel" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" placeholder="contact@entreprise.tn"
+                               @bind="entrepriseEmail" />
+                    </div>
+                </div>
+                <div class="form-text mt-2 mb-3">Ces informations apparaîtront sur les factures émises.</div>
+
+                @if (entrepriseSaved)
+                {
+                    <div class="alert alert-success alert-dismissible fade show py-2 small" role="alert">
+                        Informations de l'entreprise mises à jour avec succès.
+                        <button type="button" class="btn-close btn-close-sm" @onclick="() => entrepriseSaved = false"></button>
+                    </div>
+                }
+                <button class="btn btn-primary btn-sm" @onclick="SaveEntreprise">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // ── Timbre fiscal ──
+    private decimal montantTimbre = 1.000m;
+    private bool timbreSaved = false;
+
+    // ── Entreprise info ──
+    private string entrepriseNom = string.Empty;
+    private string entrepriseMatricule = string.Empty;
+    private string entrepriseAdresse = string.Empty;
+    private string entrepriseTel = string.Empty;
+    private string entrepriseEmail = string.Empty;
+    private bool entrepriseSaved = false;
+
+    // ── Logo ──
+    private string? logoPreviewUrl;
+    private string? logoError;
+    private IBrowserFile? logoFile;
+    private const long MaxLogoSize = 2 * 1024 * 1024; // 2 MB
+
+    private async Task OnLogoSelected(InputFileChangeEventArgs e)
+    {
+        logoError = null;
+        var file = e.File;
+
+        if (file.Size > MaxLogoSize)
+        {
+            logoError = "Le fichier dépasse la taille maximale de 2 Mo.";
+            return;
+        }
+
+        var allowedTypes = new[] { "image/png", "image/jpeg", "image/svg+xml" };
+        if (!allowedTypes.Contains(file.ContentType))
+        {
+            logoError = "Format non supporté. Utilisez PNG, JPG ou SVG.";
+            return;
+        }
+
+        logoFile = file;
+
+        // Generate a base64 preview
+        using var stream = file.OpenReadStream(MaxLogoSize);
+        using var ms = new System.IO.MemoryStream();
+        await stream.CopyToAsync(ms);
+        var base64 = Convert.ToBase64String(ms.ToArray());
+        logoPreviewUrl = $"data:{file.ContentType};base64,{base64}";
+    }
+
+    private void RemoveLogo()
+    {
+        logoFile = null;
+        logoPreviewUrl = null;
+        logoError = null;
+    }
+
+    private void SaveTimbre()
+    {
+        // TODO: call IParametresService to persist
+        timbreSaved = true;
+    }
+
+    private void SaveEntreprise()
+    {
+        // TODO: call IParametresService to persist
+        entrepriseSaved = true;
+    }
+}

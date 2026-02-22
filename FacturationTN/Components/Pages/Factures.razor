@@ -1,19 +1,118 @@
 @page "/factures"
+@rendermode InteractiveServer
 
 <PageTitle>Factures</PageTitle>
 
-<h1 class="mb-4">Gestion des factures</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Gestion des factures</h1>
+    <a class="btn btn-primary" href="/factures/creer">
+        <span class="me-1">+</span> Nouvelle facture
+    </a>
+</div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <span class="fw-semibold">Liste des factures</span>
-        <button class="btn btn-primary btn-sm" disabled>
-            + Nouvelle facture
-        </button>
-    </div>
-    <div class="card-body">
-        <p class="text-muted text-center py-5 mb-0">
-            Module factures — à implémenter (création, calcul HT/TVA/TTC, timbre fiscal).
-        </p>
+@* ── Search / Filter Bar ─────────────────────────────────────── *@
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white">🔍</span>
+                    <input type="text" class="form-control" placeholder="Rechercher par N° facture, client..."
+                           @bind="searchTerm" @bind:event="oninput" />
+                    @if (!string.IsNullOrEmpty(searchTerm))
+                    {
+                        <button class="btn btn-outline-secondary" @onclick="ClearSearch">✕</button>
+                    }
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white small">Du</span>
+                    <input type="date" class="form-control" @bind="dateFrom" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white small">Au</span>
+                    <input type="date" class="form-control" @bind="dateTo" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" @bind="filterClient">
+                    <option value="">Tous les clients</option>
+                    @* TODO: populate from IClientService *@
+                </select>
+            </div>
+            <div class="col-md-2 text-end">
+                <span class="text-muted small">@filteredCount facture(s)</span>
+            </div>
+        </div>
     </div>
 </div>
+
+@* ── Invoice Table ────────────────────────────────────────────── *@
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>N° Facture</th>
+                        <th>Date</th>
+                        <th>Client</th>
+                        <th class="text-end">Total HT</th>
+                        <th class="text-end">TVA</th>
+                        <th class="text-end">Timbre</th>
+                        <th class="text-end">Total TTC</th>
+                        <th class="text-center" style="width: 130px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (filteredCount == 0)
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-5">
+                                @if (!string.IsNullOrEmpty(searchTerm) || dateFrom.HasValue || dateTo.HasValue || !string.IsNullOrEmpty(filterClient))
+                                {
+                                    <span>Aucune facture ne correspond aux critères de recherche.</span>
+                                }
+                                else
+                                {
+                                    <span>Aucune facture enregistrée. Cliquez sur <strong>Nouvelle facture</strong> pour commencer.</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @* TODO: @foreach (var facture in filteredFactures) { rows with formatted TND values } *@
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @* ── Pagination ────────────────────────────────────────────── *@
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
+        <span class="text-muted small">Affichage @currentStart–@currentEnd sur @filteredCount résultats</span>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled"><a class="page-link" href="#">«</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item disabled"><a class="page-link" href="#">»</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+@code {
+    // ── Search & filter state ──
+    private string searchTerm = string.Empty;
+    private DateTime? dateFrom;
+    private DateTime? dateTo;
+    private string filterClient = string.Empty;
+    private int filteredCount = 0;
+    private int currentStart = 0;
+    private int currentEnd = 0;
+
+    private void ClearSearch()
+    {
+        searchTerm = string.Empty;
+    }
+}

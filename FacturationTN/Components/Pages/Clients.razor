@@ -1,19 +1,177 @@
 @page "/clients"
+@rendermode InteractiveServer
 
 <PageTitle>Clients</PageTitle>
 
-<h1 class="mb-4">Gestion des clients</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Gestion des clients</h1>
+    <button class="btn btn-primary" @onclick="ShowCreateForm">
+        <span class="bi bi-plus-lg me-1">+</span> Nouveau client
+    </button>
+</div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <span class="fw-semibold">Liste des clients</span>
-        <button class="btn btn-primary btn-sm" disabled>
-            + Nouveau client
-        </button>
-    </div>
-    <div class="card-body">
-        <p class="text-muted text-center py-5 mb-0">
-            Module clients — à implémenter (CRUD, recherche, filtrage).
-        </p>
+@* ── Search / Filter Bar ─────────────────────────────────────── *@
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-8">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><span class="bi bi-search"></span>🔍</span>
+                    <input type="text" class="form-control" placeholder="Rechercher par nom, matricule fiscale, email..."
+                           @bind="searchTerm" @bind:event="oninput" />
+                    @if (!string.IsNullOrEmpty(searchTerm))
+                    {
+                        <button class="btn btn-outline-secondary" @onclick="ClearSearch">✕</button>
+                    }
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <span class="text-muted small">@filteredCount client(s) trouvé(s)</span>
+            </div>
+        </div>
     </div>
 </div>
+
+@* ── Client Table ─────────────────────────────────────────────── *@
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom / Raison sociale</th>
+                        <th>Matricule fiscale</th>
+                        <th>Adresse</th>
+                        <th>Téléphone</th>
+                        <th>Email</th>
+                        <th class="text-center" style="width: 120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (filteredCount == 0)
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                @if (!string.IsNullOrEmpty(searchTerm))
+                                {
+                                    <span>Aucun client ne correspond à « @searchTerm »</span>
+                                }
+                                else
+                                {
+                                    <span>Aucun client enregistré. Cliquez sur <strong>Nouveau client</strong> pour commencer.</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @* TODO: @foreach (var client in filteredClients) { ... } *@
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @* ── Pagination ────────────────────────────────────────────── *@
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
+        <span class="text-muted small">Affichage @currentStart–@currentEnd sur @filteredCount résultats</span>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled"><a class="page-link" href="#">«</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item disabled"><a class="page-link" href="#">»</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+@* ── Create / Edit Form (collapsible) ─────────────────────────── *@
+@if (showForm)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(isEditing ? "Modifier le client" : "Nouveau client")</h5>
+                    <button type="button" class="btn-close" @onclick="HideForm"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nom / Raison sociale <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Ex: Société ABC" @bind="formNom" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Matricule fiscale <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="0000000/X/X/X000" @bind="formMatriculeFiscale" />
+                            <div class="form-text">Format tunisien : 7 chiffres / lettre / lettre / lettre + 3 chiffres</div>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Adresse</label>
+                            <input type="text" class="form-control" placeholder="Rue, ville, code postal" @bind="formAdresse" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Téléphone</label>
+                            <input type="tel" class="form-control" placeholder="+216 XX XXX XXX" @bind="formTelephone" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" placeholder="contact@exemple.tn" @bind="formEmail" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="HideForm">Annuler</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveClient">
+                        @(isEditing ? "Mettre à jour" : "Enregistrer")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    // ── Search & filter state ──
+    private string searchTerm = string.Empty;
+    private int filteredCount = 0;
+    private int currentStart = 0;
+    private int currentEnd = 0;
+
+    // ── Form state ──
+    private bool showForm = false;
+    private bool isEditing = false;
+    private string formNom = string.Empty;
+    private string formMatriculeFiscale = string.Empty;
+    private string formAdresse = string.Empty;
+    private string formTelephone = string.Empty;
+    private string formEmail = string.Empty;
+
+    private void ShowCreateForm()
+    {
+        isEditing = false;
+        ResetForm();
+        showForm = true;
+    }
+
+    private void HideForm()
+    {
+        showForm = false;
+    }
+
+    private void ClearSearch()
+    {
+        searchTerm = string.Empty;
+    }
+
+    private void ResetForm()
+    {
+        formNom = string.Empty;
+        formMatriculeFiscale = string.Empty;
+        formAdresse = string.Empty;
+        formTelephone = string.Empty;
+        formEmail = string.Empty;
+    }
+
+    private void SaveClient()
+    {
+        // TODO: call IClientService to persist
+        HideForm();
+    }
+}
