@@ -14,10 +14,10 @@
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-body py-2">
         <div class="row g-2 align-items-center">
-            <div class="col-md-8">
+            <div class="col-md-4">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white"><span class="bi bi-search"></span>🔍</span>
-                    <input type="text" class="form-control" placeholder="Rechercher par nom, matricule fiscale, email..."
+                    <span class="input-group-text bg-white">🔍</span>
+                    <input type="text" class="form-control" placeholder="Rechercher par nom, matricule, email..."
                            @bind="searchTerm" @bind:event="oninput" />
                     @if (!string.IsNullOrEmpty(searchTerm))
                     {
@@ -25,7 +25,33 @@
                     }
                 </div>
             </div>
-            <div class="col-md-4 text-end">
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" @bind="filterCategorie">
+                    <option value="">Toutes catégories</option>
+                    @foreach (var cat in categoriesClient)
+                    {
+                        <option value="@cat">@cat</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" @bind="filterStatut">
+                    <option value="">Tous statuts</option>
+                    <option value="Actif">Actif</option>
+                    <option value="Inactif">Inactif</option>
+                    <option value="Suspendu">Suspendu</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" @bind="filterGouvernorat">
+                    <option value="">Tous gouvernorats</option>
+                    @foreach (var g in Gouvernorats)
+                    {
+                        <option value="@g">@g</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 text-end">
                 <span class="text-muted small">@filteredCount client(s) trouvé(s)</span>
             </div>
         </div>
@@ -40,10 +66,10 @@
                 <thead class="table-light">
                     <tr>
                         <th>Nom / Raison sociale</th>
-                        <th>Matricule fiscale</th>
-                        <th>Adresse</th>
                         <th>Téléphone</th>
                         <th>Email</th>
+                        <th class="text-center">Catégorie</th>
+                        <th class="text-center">Statut</th>
                         <th class="text-center" style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
@@ -85,36 +111,226 @@
 @if (showForm)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header">
                     <h5 class="modal-title">@(isEditing ? "Modifier le client" : "Nouveau client")</h5>
                     <button type="button" class="btn-close" @onclick="HideForm"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Nom / Raison sociale <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" placeholder="Ex: Société ABC" @bind="formNom" />
+
+                    @* ── Tabs ── *@
+                    <ul class="nav nav-tabs mb-3">
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == 0 ? "active" : "")" @onclick="() => activeTab = 0">Identification</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == 1 ? "active" : "")" @onclick="() => activeTab = 1">Adresse &amp; Contact</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == 2 ? "active" : "")" @onclick="() => activeTab = 2">Commercial</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == 3 ? "active" : "")" @onclick="() => activeTab = 3">Notes</button>
+                        </li>
+                    </ul>
+
+                    @* ── Tab 0 : Identification ── *@
+                    @if (activeTab == 0)
+                    {
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Type de client <span class="text-danger">*</span></label>
+                                <select class="form-select" @bind="formTypeClient">
+                                    <option value="">— Sélectionner —</option>
+                                    <option value="Personne physique">Personne physique</option>
+                                    <option value="Personne morale">Personne morale</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Statut</label>
+                                <select class="form-select" @bind="formStatut">
+                                    <option value="Actif">Actif</option>
+                                    <option value="Inactif">Inactif</option>
+                                    <option value="Suspendu">Suspendu</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Catégorie</label>
+                                @if (!showNewCategorieClient)
+                                {
+                                    <select class="form-select" value="@formCategorie"
+                                            @onchange="OnFormCategorieClientChanged">
+                                        <option value="">— Aucune —</option>
+                                        @foreach (var cat in categoriesClient)
+                                        {
+                                            <option value="@cat">@cat</option>
+                                        }
+                                        <option disabled>────────────────</option>
+                                        <option value="__new__">Créer une catégorie…</option>
+                                    </select>
+                                }
+                                else
+                                {
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Nouvelle catégorie"
+                                               @bind="newCategorieClient" @bind:event="oninput" />
+                                        <button class="btn btn-success btn-sm" type="button"
+                                                disabled="@string.IsNullOrWhiteSpace(newCategorieClient)"
+                                                @onclick="AddCategorieClient">✓</button>
+                                        <button class="btn btn-outline-secondary btn-sm" type="button"
+                                                @onclick="CancelNewCategorieClient">✕</button>
+                                    </div>
+                                }
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nom / Raison sociale <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Ex: Société ABC" @bind="formNom" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Matricule fiscale <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="0000000/X/X/X000" @bind="formMatriculeFiscale" />
+                                <div class="form-text">Format : 7 chiffres / lettre / lettre / lettre + 3 chiffres</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Numéro RNE</label>
+                                <input type="text" class="form-control" placeholder="Ex: 1234567" @bind="formNumeroRne" />
+                                <div class="form-text">Registre National des Entreprises</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Forme juridique</label>
+                                <select class="form-select" @bind="formFormeJuridique">
+                                    <option value="">— Sélectionner —</option>
+                                    <option value="EI">EI — Entreprise individuelle</option>
+                                    <option value="SUARL">SUARL</option>
+                                    <option value="SARL">SARL</option>
+                                    <option value="SA">SA</option>
+                                    <option value="Autre">Autre</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Matricule fiscale <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" placeholder="0000000/X/X/X000" @bind="formMatriculeFiscale" />
-                            <div class="form-text">Format tunisien : 7 chiffres / lettre / lettre / lettre + 3 chiffres</div>
+                    }
+
+                    @* ── Tab 1 : Adresse & Contact ── *@
+                    @if (activeTab == 1)
+                    {
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Adresse</label>
+                                <input type="text" class="form-control" placeholder="Numéro et nom de la rue" @bind="formAdresse" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Code postal</label>
+                                <input type="text" class="form-control" placeholder="Ex: 1000" @bind="formCodePostal" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Ville</label>
+                                <input type="text" class="form-control" placeholder="Ex: Tunis" @bind="formVille" />
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">Gouvernorat</label>
+                                <select class="form-select" @bind="formGouvernorat">
+                                    <option value="">— Sélectionner —</option>
+                                    @foreach (var g in Gouvernorats)
+                                    {
+                                        <option value="@g">@g</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Pays</label>
+                                <input type="text" class="form-control" placeholder="Tunisie" @bind="formPays" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Téléphone</label>
+                                <input type="tel" class="form-control" placeholder="+216 XX XXX XXX" @bind="formTelephone" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Téléphone 2</label>
+                                <input type="tel" class="form-control" placeholder="+216 XX XXX XXX" @bind="formTelephone2" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Fax</label>
+                                <input type="tel" class="form-control" placeholder="+216 XX XXX XXX" @bind="formFax" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" placeholder="contact@exemple.tn" @bind="formEmail" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Site web</label>
+                                <input type="url" class="form-control" placeholder="https://exemple.tn" @bind="formSiteWeb" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nom du contact principal</label>
+                                <input type="text" class="form-control" placeholder="Prénom Nom" @bind="formNomContact" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Poste du contact</label>
+                                <input type="text" class="form-control" placeholder="Ex: Directeur financier" @bind="formPosteContact" />
+                            </div>
                         </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Adresse</label>
-                            <input type="text" class="form-control" placeholder="Rue, ville, code postal" @bind="formAdresse" />
+                    }
+
+                    @* ── Tab 2 : Commercial ── *@
+                    @if (activeTab == 2)
+                    {
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Plafond de crédit</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" step="0.001" min="0"
+                                           placeholder="0.000" @bind="formPlafondCredit" />
+                                    <span class="input-group-text">TND</span>
+                                </div>
+                                <div class="form-text">0 = pas de limite</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Mode de paiement préféré</label>
+                                <select class="form-select" @bind="formModePaiement">
+                                    <option value="">— Sélectionner —</option>
+                                    <option value="Virement">Virement bancaire</option>
+                                    <option value="Chèque">Chèque</option>
+                                    <option value="Espèces">Espèces</option>
+                                    <option value="Traite">Traite</option>
+                                    <option value="Carte">Carte bancaire</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Devise</label>
+                                <select class="form-select" @bind="formDevise">
+                                    <option value="TND">TND — Dinar tunisien</option>
+                                    <option value="EUR">EUR — Euro</option>
+                                    <option value="USD">USD — Dollar américain</option>
+                                    <option value="GBP">GBP — Livre sterling</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Remise par défaut</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" step="0.01" min="0" max="100"
+                                           placeholder="0.00" @bind="formRemise" />
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text">Appliquée automatiquement aux lignes de facture</div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Téléphone</label>
-                            <input type="tel" class="form-control" placeholder="+216 XX XXX XXX" @bind="formTelephone" />
+                    }
+
+                    @* ── Tab 3 : Notes ── *@
+                    @if (activeTab == 3)
+                    {
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Notes / Observations</label>
+                                <textarea class="form-control" rows="6"
+                                          placeholder="Remarques internes, informations complémentaires..."
+                                          @bind="formNotes"></textarea>
+                                <div class="form-text">Visible uniquement en interne — n'apparaît pas sur les factures.</div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" placeholder="contact@exemple.tn" @bind="formEmail" />
-                        </div>
-                    </div>
+                    }
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" @onclick="HideForm">Annuler</button>
@@ -130,6 +346,9 @@
 @code {
     // ── Search & filter state ──
     private string searchTerm = string.Empty;
+    private string filterCategorie = string.Empty;
+    private string filterStatut = string.Empty;
+    private string filterGouvernorat = string.Empty;
     private int filteredCount = 0;
     private int currentStart = 0;
     private int currentEnd = 0;
@@ -137,15 +356,90 @@
     // ── Form state ──
     private bool showForm = false;
     private bool isEditing = false;
+    private int activeTab = 0;
+
+    // Identification
+    private string formTypeClient = string.Empty;
+    private string formStatut = "Actif";
+    private string formCategorie = string.Empty;
     private string formNom = string.Empty;
     private string formMatriculeFiscale = string.Empty;
+    private string formNumeroRne = string.Empty;
+    private string formFormeJuridique = string.Empty;
+
+    // Adresse & Contact
     private string formAdresse = string.Empty;
+    private string formCodePostal = string.Empty;
+    private string formVille = string.Empty;
+    private string formGouvernorat = string.Empty;
+    private string formPays = "Tunisie";
     private string formTelephone = string.Empty;
+    private string formTelephone2 = string.Empty;
+    private string formFax = string.Empty;
     private string formEmail = string.Empty;
+    private string formSiteWeb = string.Empty;
+    private string formNomContact = string.Empty;
+    private string formPosteContact = string.Empty;
+
+    // Commercial
+    private decimal formPlafondCredit = 0;
+    private string formModePaiement = string.Empty;
+    private string formDevise = "TND";
+    private decimal formRemise = 0;
+
+    // Notes
+    private string formNotes = string.Empty;
+
+    // ── Dynamic category list (persisted via service later) ──
+    private List<string> categoriesClient = new() { "VIP", "PME", "Particulier", "Export" };
+    private bool showNewCategorieClient = false;
+    private string newCategorieClient = string.Empty;
+
+    // ── Tunisian governorates ──
+    private static readonly string[] Gouvernorats =
+    [
+        "Ariana", "Béja", "Ben Arous", "Bizerte", "Gabès", "Gafsa", "Jendouba",
+        "Kairouan", "Kasserine", "Kébili", "Kef", "Mahdia", "Manouba", "Médenine",
+        "Monastir", "Nabeul", "Sfax", "Sidi Bouzid", "Siliana", "Sousse",
+        "Tataouine", "Tozeur", "Tunis", "Zaghouan"
+    ];
+
+    private void OnFormCategorieClientChanged(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        if (val == "__new__")
+        {
+            showNewCategorieClient = true;
+            newCategorieClient = string.Empty;
+        }
+        else
+        {
+            formCategorie = val;
+        }
+    }
+
+    private void AddCategorieClient()
+    {
+        var trimmed = newCategorieClient.Trim();
+        if (!string.IsNullOrEmpty(trimmed) && !categoriesClient.Contains(trimmed))
+        {
+            categoriesClient.Add(trimmed);
+        }
+        formCategorie = trimmed;
+        showNewCategorieClient = false;
+        newCategorieClient = string.Empty;
+    }
+
+    private void CancelNewCategorieClient()
+    {
+        showNewCategorieClient = false;
+        newCategorieClient = string.Empty;
+    }
 
     private void ShowCreateForm()
     {
         isEditing = false;
+        activeTab = 0;
         ResetForm();
         showForm = true;
     }
@@ -162,11 +456,30 @@
 
     private void ResetForm()
     {
+        formTypeClient = string.Empty;
+        formStatut = "Actif";
+        formCategorie = string.Empty;
         formNom = string.Empty;
         formMatriculeFiscale = string.Empty;
+        formNumeroRne = string.Empty;
+        formFormeJuridique = string.Empty;
         formAdresse = string.Empty;
+        formCodePostal = string.Empty;
+        formVille = string.Empty;
+        formGouvernorat = string.Empty;
+        formPays = "Tunisie";
         formTelephone = string.Empty;
+        formTelephone2 = string.Empty;
+        formFax = string.Empty;
         formEmail = string.Empty;
+        formSiteWeb = string.Empty;
+        formNomContact = string.Empty;
+        formPosteContact = string.Empty;
+        formPlafondCredit = 0;
+        formModePaiement = string.Empty;
+        formDevise = "TND";
+        formRemise = 0;
+        formNotes = string.Empty;
     }
 
     private void SaveClient()

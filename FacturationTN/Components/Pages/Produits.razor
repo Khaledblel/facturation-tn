@@ -14,7 +14,7 @@
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-body py-2">
         <div class="row g-2 align-items-center">
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white">🔍</span>
                     <input type="text" class="form-control" placeholder="Rechercher par référence, désignation..."
@@ -25,17 +25,41 @@
                     }
                 </div>
             </div>
-            <div class="col-md-3">
-                <select class="form-select form-select-sm" @bind="filterTva">
-                    <option value="-1">Tous les taux TVA</option>
-                    <option value="0">Exonéré — 0 %</option>
-                    <option value="7">Réduit — 7 %</option>
-                    <option value="13">Intermédiaire — 13 %</option>
-                    <option value="19">Normal — 19 %</option>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" @bind="filterType">
+                    <option value="">Tous types</option>
+                    <option value="Produit">Produit</option>
+                    <option value="Service">Service</option>
                 </select>
             </div>
-            <div class="col-md-3 text-end">
-                <span class="text-muted small">@filteredCount produit(s) trouvé(s)</span>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" @bind="filterCategorie">
+                    <option value="">Toutes catégories</option>
+                    @foreach (var cat in categoriesProduit)
+                    {
+                        <option value="@cat">@cat</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" @bind="filterStatut">
+                    <option value="">Tous statuts</option>
+                    <option value="Actif">Actif</option>
+                    <option value="Inactif">Inactif</option>
+                    <option value="Discontinué">Discontinué</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <select class="form-select form-select-sm" @bind="filterTva">
+                    <option value="-1">TVA</option>
+                    <option value="0">0 %</option>
+                    <option value="7">7 %</option>
+                    <option value="13">13 %</option>
+                    <option value="19">19 %</option>
+                </select>
+            </div>
+            <div class="col-md-2 text-end">
+                <span class="text-muted small">@filteredCount produit(s)</span>
             </div>
         </div>
     </div>
@@ -50,9 +74,10 @@
                     <tr>
                         <th>Référence</th>
                         <th>Désignation</th>
-                        <th class="text-end">Prix unitaire HT</th>
-                        <th class="text-center">Taux TVA</th>
+                        <th class="text-center">Type</th>
+                        <th class="text-center">Catégorie</th>
                         <th class="text-end">Prix TTC</th>
+                        <th class="text-center">Statut</th>
                         <th class="text-center" style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
@@ -60,7 +85,7 @@
                     @if (filteredCount == 0)
                     {
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-5">
+                            <td colspan="7" class="text-center text-muted py-5">
                                 @if (!string.IsNullOrEmpty(searchTerm) || filterTva >= 0)
                                 {
                                     <span>Aucun produit ne correspond aux critères de recherche.</span>
@@ -94,48 +119,251 @@
 @if (showForm)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header">
                     <h5 class="modal-title">@(isEditing ? "Modifier le produit" : "Nouveau produit")</h5>
                     <button type="button" class="btn-close" @onclick="HideForm"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Référence <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" placeholder="Ex: PRD-001" @bind="formReference" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Désignation <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" placeholder="Nom du produit" @bind="formDesignation" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Prix unitaire HT <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" step="0.001" min="0"
-                                       placeholder="0.000" @bind="formPrixHT" @bind:event="oninput" />
-                                <span class="input-group-text">TND</span>
+
+                    @* ── Tabs ── *@
+                    <ul class="nav nav-tabs mb-3">
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == 0 ? "active" : "")" @onclick="() => activeTab = 0">Identification</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == 1 ? "active" : "")" @onclick="() => activeTab = 1">Tarification</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == 2 ? "active" : "") @(IsService ? "text-muted" : "")" @onclick="() => activeTab = 2">Stock</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == 3 ? "active" : "")" @onclick="() => activeTab = 3">Description &amp; Notes</button>
+                        </li>
+                    </ul>
+
+                    @* ── Tab 0 : Identification ── *@
+                    @if (activeTab == 0)
+                    {
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Type de produit <span class="text-danger">*</span></label>
+                                <select class="form-select" @bind="formTypeProduit" @bind:after="OnTypeChanged">
+                                    <option value="">— Sélectionner —</option>
+                                    <option value="Produit">Produit</option>
+                                    <option value="Service">Service</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Catégorie</label>
+                                @if (!showNewCategorieProduit)
+                                {
+                                    <select class="form-select" value="@formCategorie"
+                                            @onchange="OnFormCategorieProduitChanged">
+                                        <option value="">— Aucune —</option>
+                                        @foreach (var cat in categoriesProduit)
+                                        {
+                                            <option value="@cat">@cat</option>
+                                        }
+                                        <option disabled>────────────────</option>
+                                        <option value="__new__">Créer une catégorie…</option>
+                                    </select>
+                                }
+                                else
+                                {
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Nouvelle catégorie"
+                                               @bind="newCategorieProduit" @bind:event="oninput" />
+                                        <button class="btn btn-success btn-sm" type="button"
+                                                disabled="@string.IsNullOrWhiteSpace(newCategorieProduit)"
+                                                @onclick="AddCategorieProduit">✓</button>
+                                        <button class="btn btn-outline-secondary btn-sm" type="button"
+                                                @onclick="CancelNewCategorieProduit">✕</button>
+                                    </div>
+                                }
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Statut</label>
+                                <select class="form-select" @bind="formStatut">
+                                    <option value="Actif">Actif</option>
+                                    <option value="Inactif">Inactif</option>
+                                    <option value="Discontinué">Discontinué</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Référence <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Ex: PRD-001" @bind="formReference" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Désignation <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Nom du produit" @bind="formDesignation" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label @(IsService ? "text-muted" : "")">Marque</label>
+                                <input type="text" class="form-control" placeholder="@(IsService ? "Non applicable" : "Ex: Samsung, Dell...")" 
+                                       @bind="formMarque" disabled="@IsService" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Unité de mesure</label>
+                                @if (!showNewUnite)
+                                {
+                                    <select class="form-select" value="@formUnite"
+                                            @onchange="OnFormUniteChanged">
+                                        @foreach (var u in unitesMesure)
+                                        {
+                                            <option value="@u">@u</option>
+                                        }
+                                        <option disabled>────────────────</option>
+                                        <option value="__new__">Créer une unité…</option>
+                                    </select>
+                                }
+                                else
+                                {
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Nouvelle unité"
+                                               @bind="newUnite" @bind:event="oninput" />
+                                        <button class="btn btn-success btn-sm" type="button"
+                                                disabled="@string.IsNullOrWhiteSpace(newUnite)"
+                                                @onclick="AddUnite">✓</button>
+                                        <button class="btn btn-outline-secondary btn-sm" type="button"
+                                                @onclick="CancelNewUnite">✕</button>
+                                    </div>
+                                }
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Taux TVA <span class="text-danger">*</span></label>
-                            <select class="form-select" @bind="formTauxTva" @bind:event="onchange">
-                                <option value="0">Exonéré — 0 %</option>
-                                <option value="7">Réduit — 7 %</option>
-                                <option value="13">Intermédiaire — 13 %</option>
-                                <option value="19" selected>Normal — 19 %</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Prix TTC <span class="text-muted">(calculé)</span></label>
-                            <div class="input-group">
-                                <input type="text" class="form-control bg-light" readonly
-                                       value="@ComputedPrixTTC.ToString("N3")" />
-                                <span class="input-group-text">TND</span>
+                    }
+
+                    @* ── Tab 1 : Tarification ── *@
+                    @if (activeTab == 1)
+                    {
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">@(IsService ? "Coût de revient HT" : "Prix d'achat HT")</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" step="0.001" min="0"
+                                           placeholder="0.000" @bind="formPrixAchatHT" />
+                                    <span class="input-group-text">TND</span>
+                                </div>
+                                <div class="form-text">@(IsService ? "Coût de revient — utile pour le calcul des marges" : "Coût d'achat — utile pour le calcul des marges")</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">@(IsService ? "Tarif HT" : "Prix de vente HT") <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" step="0.001" min="0"
+                                           placeholder="0.000" @bind="formPrixHT" @bind:event="oninput" />
+                                    <span class="input-group-text">TND</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Taux TVA <span class="text-danger">*</span></label>
+                                <select class="form-select" @bind="formTauxTva" @bind:event="onchange">
+                                    <option value="0">Exonéré — 0 %</option>
+                                    <option value="7">Réduit — 7 %</option>
+                                    <option value="13">Intermédiaire — 13 %</option>
+                                    <option value="19">Normal — 19 %</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">@(IsService ? "Tarif TTC" : "Prix TTC") <span class="text-muted">(calculé)</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control bg-light" readonly
+                                           value="@ComputedPrixTTC.ToString("N3")" />
+                                    <span class="input-group-text">TND</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Marge brute <span class="text-muted">(calculée)</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control bg-light" readonly
+                                           value="@ComputedMarge.ToString("N3")" />
+                                    <span class="input-group-text">TND</span>
+                                </div>
+                                <div class="form-text">@(IsService ? "Tarif HT − Coût de revient HT" : "Prix vente HT − Prix achat HT")</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Remise maximale autorisée</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" step="0.01" min="0" max="100"
+                                           placeholder="0.00" @bind="formRemiseMax" />
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text">Plafond de remise applicable sur ce @(IsService ? "service" : "produit")</div>
                             </div>
                         </div>
-                    </div>
+                    }
+
+                    @* ── Tab 2 : Stock ── *@
+                    @if (activeTab == 2)
+                    {
+                        @if (IsService)
+                        {
+                            <div class="alert alert-info py-3 mb-0">
+                                <strong>ℹ️</strong> Le suivi de stock n'est pas applicable aux services.
+                            </div>
+                        }
+                        else
+                        {
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="suiviStock" @bind="formSuiviStock" />
+                                    <label class="form-check-label" for="suiviStock">Activer le suivi de stock</label>
+                                </div>
+                            </div>
+                            @if (formSuiviStock)
+                            {
+                                <div class="col-md-6">
+                                    <label class="form-label">Quantité en stock</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" min="0"
+                                               placeholder="0" @bind="formQuantiteStock" />
+                                        <span class="input-group-text">@formUnite</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Seuil d'alerte</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" min="0"
+                                               placeholder="0" @bind="formSeuilAlerte" />
+                                        <span class="input-group-text">@formUnite</span>
+                                    </div>
+                                    <div class="form-text">Alerte lorsque le stock descend sous ce seuil</div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="col-12">
+                                    <div class="alert alert-light py-2 small mb-0">
+                                        Le suivi de stock est désactivé pour ce produit.
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        }
+                    }
+
+                    @* ── Tab 3 : Description & Notes ── *@
+                    @if (activeTab == 3)
+                    {
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Description détaillée</label>
+                                <textarea class="form-control" rows="4"
+                                          placeholder="Description complète du produit ou service..."
+                                          @bind="formDescription"></textarea>
+                                <div class="form-text">Peut apparaître sur les factures si nécessaire.</div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Notes internes</label>
+                                <textarea class="form-control" rows="4"
+                                          placeholder="Remarques internes, fournisseur, conditions..."
+                                          @bind="formNotes"></textarea>
+                                <div class="form-text">Visible uniquement en interne — n'apparaît pas sur les factures.</div>
+                            </div>
+                        </div>
+                    }
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" @onclick="HideForm">Annuler</button>
@@ -151,25 +379,137 @@
 @code {
     // ── Search & filter state ──
     private string searchTerm = string.Empty;
+    private string filterType = string.Empty;
+    private string filterCategorie = string.Empty;
+    private string filterStatut = string.Empty;
     private int filterTva = -1;
     private int filteredCount = 0;
     private int currentStart = 0;
     private int currentEnd = 0;
 
+    // ── Dynamic lists (persisted via service later) ──
+    private List<string> categoriesProduit = new() { "Alimentaire", "Électronique", "Textile", "Service conseil", "Bâtiment", "Informatique" };
+    private List<string> unitesMesure = new() { "Pièce", "Kg", "Litre", "Mètre", "m²", "Heure", "Jour", "Forfait" };
+    private bool showNewCategorieProduit = false;
+    private string newCategorieProduit = string.Empty;
+    private bool showNewUnite = false;
+    private string newUnite = string.Empty;
+
     // ── Form state ──
     private bool showForm = false;
     private bool isEditing = false;
+    private int activeTab = 0;
+
+    // Identification
+    private string formTypeProduit = string.Empty;
+    private string formCategorie = string.Empty;
+    private string formStatut = "Actif";
     private string formReference = string.Empty;
     private string formDesignation = string.Empty;
+    private string formMarque = string.Empty;
+    private string formUnite = "Pièce";
+
+    // Tarification
+    private decimal formPrixAchatHT = 0;
     private decimal formPrixHT = 0;
     private int formTauxTva = 19;
+    private decimal formRemiseMax = 0;
+
+    // Stock
+    private bool formSuiviStock = false;
+    private int formQuantiteStock = 0;
+    private int formSeuilAlerte = 0;
+
+    // Description & Notes
+    private string formDescription = string.Empty;
+    private string formNotes = string.Empty;
 
     // ── Computed ──
+    private bool IsService => formTypeProduit == "Service";
     private decimal ComputedPrixTTC => formPrixHT * (1 + formTauxTva / 100m);
+    private decimal ComputedMarge => formPrixHT - formPrixAchatHT;
+
+    private void OnFormCategorieProduitChanged(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        if (val == "__new__")
+        {
+            showNewCategorieProduit = true;
+            newCategorieProduit = string.Empty;
+        }
+        else
+        {
+            formCategorie = val;
+        }
+    }
+
+    private void AddCategorieProduit()
+    {
+        var trimmed = newCategorieProduit.Trim();
+        if (!string.IsNullOrEmpty(trimmed) && !categoriesProduit.Contains(trimmed))
+        {
+            categoriesProduit.Add(trimmed);
+        }
+        formCategorie = trimmed;
+        showNewCategorieProduit = false;
+        newCategorieProduit = string.Empty;
+    }
+
+    private void CancelNewCategorieProduit()
+    {
+        showNewCategorieProduit = false;
+        newCategorieProduit = string.Empty;
+    }
+
+    private void OnFormUniteChanged(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        if (val == "__new__")
+        {
+            showNewUnite = true;
+            newUnite = string.Empty;
+        }
+        else
+        {
+            formUnite = val;
+        }
+    }
+
+    private void AddUnite()
+    {
+        var trimmed = newUnite.Trim();
+        if (!string.IsNullOrEmpty(trimmed) && !unitesMesure.Contains(trimmed))
+        {
+            unitesMesure.Add(trimmed);
+        }
+        formUnite = trimmed;
+        showNewUnite = false;
+        newUnite = string.Empty;
+    }
+
+    private void CancelNewUnite()
+    {
+        showNewUnite = false;
+        newUnite = string.Empty;
+    }
+
+    private void OnTypeChanged()
+    {
+        if (IsService)
+        {
+            formMarque = string.Empty;
+            formSuiviStock = false;
+            formQuantiteStock = 0;
+            formSeuilAlerte = 0;
+            if (formUnite == "Pièce" || formUnite == "Kg" || formUnite == "Litre" || formUnite == "Mètre" || formUnite == "m²")
+                formUnite = "Heure";
+        }
+    }
 
     private void ShowCreateForm()
     {
         isEditing = false;
+        activeTab = 0;
         ResetForm();
         showForm = true;
     }
@@ -186,10 +526,22 @@
 
     private void ResetForm()
     {
+        formTypeProduit = string.Empty;
+        formCategorie = string.Empty;
+        formStatut = "Actif";
         formReference = string.Empty;
         formDesignation = string.Empty;
+        formMarque = string.Empty;
+        formUnite = "Pièce";
+        formPrixAchatHT = 0;
         formPrixHT = 0;
         formTauxTva = 19;
+        formRemiseMax = 0;
+        formSuiviStock = false;
+        formQuantiteStock = 0;
+        formSeuilAlerte = 0;
+        formDescription = string.Empty;
+        formNotes = string.Empty;
     }
 
     private void SaveProduit()
