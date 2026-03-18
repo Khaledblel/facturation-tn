@@ -1,5 +1,7 @@
 using FacturationTN.Components;
 using FacturationTN.Data;
+using FacturationTN.Services;
+using FacturationTN.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +13,8 @@ builder.Services.AddRazorComponents()
 // ── Entity Framework Core (SQLite) ──
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IClientService, ClientService>();
 
 var app = builder.Build();
 

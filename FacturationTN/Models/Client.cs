@@ -23,7 +23,7 @@ public class Client
     public CategorieClient? Categorie { get; set; }
 
     [Required(ErrorMessage = "Le nom / raison sociale est obligatoire.")]
-    [MaxLength(200)]
+    [MaxLength(50)]
     public string Nom { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Le matricule fiscale est obligatoire.")]
@@ -41,19 +41,19 @@ public class Client
     // Adresse & Contact
     // ════════════════════════════════════════════════════════════
 
-    [MaxLength(300)]
+    [MaxLength(50)]
     public string? Adresse { get; set; }
 
     [MaxLength(10)]
     public string? CodePostal { get; set; }
 
-    [MaxLength(100)]
+    [MaxLength(40)]
     public string? Ville { get; set; }
 
     [MaxLength(50)]
     public string? Gouvernorat { get; set; }
 
-    [MaxLength(60)]
+    [MaxLength(30)]
     public string Pays { get; set; } = "Tunisie";
 
     [MaxLength(20)]
@@ -65,20 +65,20 @@ public class Client
     public string? Telephone2 { get; set; }
 
     [MaxLength(20)]
+    [Phone(ErrorMessage = "Numéro de fax invalide.")]
     public string? Fax { get; set; }
 
-    [MaxLength(150)]
+    [MaxLength(50)]
     [EmailAddress(ErrorMessage = "Adresse email invalide.")]
     public string? Email { get; set; }
 
-    [MaxLength(200)]
-    [Url(ErrorMessage = "URL invalide.")]
+    [MaxLength(50)]
     public string? SiteWeb { get; set; }
 
-    [MaxLength(150)]
+    [MaxLength(50)]
     public string? NomContact { get; set; }
 
-    [MaxLength(100)]
+    [MaxLength(50)]
     public string? PosteContact { get; set; }
 
     // ════════════════════════════════════════════════════════════

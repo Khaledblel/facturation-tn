@@ -1,0 +1,243 @@
+@page "/clients/{Id:int}"
+@rendermode InteractiveServer
+@using FacturationTN.Models
+@using FacturationTN.Models.Enums
+@using FacturationTN.Services.Interfaces
+@inject IClientService ClientService
+
+<PageTitle>Fiche client</PageTitle>
+
+<div class="client-details-shell">
+@if (isLoading)
+{
+    <div class="card border-0 shadow-sm state-card">
+        <div class="card-body py-5 text-center text-muted">
+            Chargement de la fiche client...
+        </div>
+    </div>
+}
+else if (client is null)
+{
+    <div class="card border-0 shadow-sm state-card">
+        <div class="card-body py-5 text-center">
+            <h1 class="h4 mb-3">Client introuvable</h1>
+            <p class="text-muted mb-4">Le client demande n'existe pas ou a ete supprime.</p>
+            <a class="btn btn-outline-primary" href="/clients">Retour a la liste</a>
+        </div>
+    </div>
+}
+else
+{
+    <section class="hero-panel mb-4">
+        <div class="hero-inner">
+            <div>
+                <p class="eyebrow mb-2">Fiche client</p>
+                <h1 class="mb-2 details-title details-break">@client.Nom</h1>
+                <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                    <span class="badge @GetStatusBadgeClass(client.Statut)">@client.Statut</span>
+                    <span class="badge text-bg-light border">@GetTypeClientLabel(client.TypeClient)</span>
+                    <span class="pill-soft">Matricule: @client.MatriculeFiscale</span>
+                </div>
+    
+            </div>
+            <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
+                <a class="btn btn-light btn-elevated" href="/clients">Retour</a>
+                <a class="btn btn-primary btn-elevated" href="/clients">Modifier depuis la liste</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 shadow-sm details-card mb-3">
+                <div class="card-header bg-white fw-semibold section-header">Identification</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="details-label">Categorie</div>
+                            <div class="details-value">@(client.Categorie?.Nom ?? "-")</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Numero RNE</div>
+                            <div class="details-value">@(client.NumeroRne ?? "-")</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Forme juridique</div>
+                            <div class="details-value">@GetFormeJuridiqueLabel(client.FormeJuridique)</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Date de creation</div>
+                            <div class="details-value">@client.DateCreation.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm details-card mb-3">
+                <div class="card-header bg-white fw-semibold section-header">Adresse et contact</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="details-label">Adresse</div>
+                            <div class="details-value">@FormatAddress(client)</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Telephone</div>
+                            <div class="details-value">@(client.Telephone ?? "-")</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Telephone 2</div>
+                            <div class="details-value">@(client.Telephone2 ?? "-")</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Fax</div>
+                            <div class="details-value">@(client.Fax ?? "-")</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Email</div>
+                            <div class="details-value details-break">@(client.Email ?? "-")</div>
+                        </div>
+                        <div class="col-12">
+                            <div class="details-label">Site web</div>
+                            <div class="details-value details-break">@(client.SiteWeb ?? "-")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm details-card notes-card">
+                <div class="card-header bg-white fw-semibold section-header">Notes internes</div>
+                <div class="card-body">
+                    @if (string.IsNullOrWhiteSpace(client.Notes))
+                    {
+                        <span class="text-muted">Aucune note enregistree.</span>
+                    }
+                    else
+                    {
+                        <p class="mb-0 details-break">@client.Notes</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow-sm accent-card details-card mb-3">
+                <div class="card-header bg-transparent border-0 pt-3 pb-0 fw-semibold section-header">Apercu commercial</div>
+                <div class="card-body pt-2">
+                    <div class="metric-row">
+                        <span>Plafond credit</span>
+                        <strong>@client.PlafondCredit.ToString("0.000") TND</strong>
+                    </div>
+                    <div class="metric-row">
+                        <span>Mode paiement prefere</span>
+                        <strong>@GetModePaiementLabel(client.ModePaiement)</strong>
+                    </div>
+                    <div class="metric-row">
+                        <span>Devise</span>
+                        <strong>@client.Devise</strong>
+                    </div>
+                    <div class="metric-row mb-0">
+                        <span>Remise par defaut</span>
+                        <strong>@client.RemiseParDefaut.ToString("0.##") %</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm details-card">
+                <div class="card-header bg-white fw-semibold section-header">Contact principal</div>
+                <div class="card-body">
+                    <div class="details-label">Nom</div>
+                    <div class="details-value mb-3">@(client.NomContact ?? "-")</div>
+                    <div class="details-label">Poste</div>
+                    <div class="details-value mb-3">@(client.PosteContact ?? "-")</div>
+                    <div class="details-label">Derniere modification</div>
+                    <div class="details-value">
+                        @(client.DateModification.HasValue
+                            ? client.DateModification.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                            : "-")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Client? client;
+    private bool isLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        client = await ClientService.GetByIdAsync(Id);
+        isLoading = false;
+    }
+
+    private static string GetTypeClientLabel(TypeClient typeClient)
+    {
+        return typeClient switch
+        {
+            TypeClient.PersonnePhysique => "Personne physique",
+            TypeClient.PersonneMorale => "Personne morale",
+            _ => "Non defini"
+        };
+    }
+
+    private static string GetFormeJuridiqueLabel(FormeJuridique? formeJuridique)
+    {
+        return formeJuridique?.ToString() ?? "-";
+    }
+
+    private static string GetModePaiementLabel(ModePaiement? modePaiement)
+    {
+        return modePaiement switch
+        {
+            ModePaiement.Virement => "Virement",
+            ModePaiement.Cheque => "Cheque",
+            ModePaiement.Especes => "Especes",
+            ModePaiement.Traite => "Traite",
+            ModePaiement.CarteBancaire => "Carte bancaire",
+            ModePaiement.Autre => "Autre",
+            _ => "-"
+        };
+    }
+
+    private static string FormatAddress(Client c)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(c.Adresse))
+        {
+            parts.Add(c.Adresse);
+        }
+
+        var cityLine = string.Join(" ", new[] { c.CodePostal, c.Ville }.Where(v => !string.IsNullOrWhiteSpace(v)));
+        if (!string.IsNullOrWhiteSpace(cityLine))
+        {
+            parts.Add(cityLine);
+        }
+
+        var regionLine = string.Join(" - ", new[] { c.Gouvernorat, c.Pays }.Where(v => !string.IsNullOrWhiteSpace(v)));
+        if (!string.IsNullOrWhiteSpace(regionLine))
+        {
+            parts.Add(regionLine);
+        }
+
+        return parts.Count == 0 ? "-" : string.Join(", ", parts);
+    }
+
+    private static string GetStatusBadgeClass(StatutClient statut)
+    {
+        return statut switch
+        {
+            StatutClient.Actif => "bg-success-subtle text-success-emphasis border",
+            StatutClient.Inactif => "bg-secondary-subtle text-secondary-emphasis border",
+            StatutClient.Suspendu => "bg-warning-subtle text-warning-emphasis border",
+            _ => "bg-light text-dark border"
+        };
+    }
+}

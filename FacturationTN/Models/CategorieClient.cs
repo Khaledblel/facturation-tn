@@ -11,7 +11,7 @@ public class CategorieClient
     public int Id { get; set; }
 
     [Required(ErrorMessage = "Le nom de la catégorie est obligatoire.")]
-    [MaxLength(100)]
+    [MaxLength(30)]
     public string Nom { get; set; } = string.Empty;
 
     // ── Navigation ──

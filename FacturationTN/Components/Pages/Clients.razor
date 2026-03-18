@@ -1,5 +1,10 @@
 @page "/clients"
 @rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using FacturationTN.Models
+@using FacturationTN.Models.Enums
+@using FacturationTN.Services.Interfaces
+@inject IClientService ClientService
 
 <PageTitle>Clients</PageTitle>
 
@@ -10,6 +15,13 @@
     </button>
 </div>
 
+@if (!string.IsNullOrWhiteSpace(summaryMessage))
+{
+    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success")" role="alert">
+        @summaryMessage
+    </div>
+}
+
 @* ── Search / Filter Bar ─────────────────────────────────────── *@
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-body py-2">
@@ -18,7 +30,7 @@
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white">🔍</span>
                     <input type="text" class="form-control" placeholder="Rechercher par nom, matricule, email..."
-                           @bind="searchTerm" @bind:event="oninput" />
+                              @bind="searchTerm" @bind:event="oninput" @bind:after="ApplyFilters" />
                     @if (!string.IsNullOrEmpty(searchTerm))
                     {
                         <button class="btn btn-outline-secondary" @onclick="ClearSearch">✕</button>
@@ -26,7 +38,7 @@
                 </div>
             </div>
             <div class="col-md-2">
-                <select class="form-select form-select-sm" @bind="filterCategorie">
+                <select class="form-select form-select-sm" @bind="filterCategorie" @bind:after="ApplyFilters">
                     <option value="">Toutes catégories</option>
                     @foreach (var cat in categoriesClient)
                     {
@@ -35,7 +47,7 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <select class="form-select form-select-sm" @bind="filterStatut">
+                <select class="form-select form-select-sm" @bind="filterStatut" @bind:after="ApplyFilters">
                     <option value="">Tous statuts</option>
                     <option value="Actif">Actif</option>
                     <option value="Inactif">Inactif</option>
@@ -43,7 +55,7 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <select class="form-select form-select-sm" @bind="filterGouvernorat">
+                <select class="form-select form-select-sm" @bind="filterGouvernorat" @bind:after="ApplyFilters">
                     <option value="">Tous gouvernorats</option>
                     @foreach (var g in Gouvernorats)
                     {
@@ -70,7 +82,7 @@
                         <th>Email</th>
                         <th class="text-center">Catégorie</th>
                         <th class="text-center">Statut</th>
-                        <th class="text-center" style="width: 120px;">Actions</th>
+                        <th class="text-center" style="width: 260px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -89,7 +101,42 @@
                             </td>
                         </tr>
                     }
-                    @* TODO: @foreach (var client in filteredClients) { ... } *@
+                    @foreach (var client in filteredClients)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@client.Nom</div>
+                                <div class="text-muted small">@client.MatriculeFiscale</div>
+                            </td>
+                            <td>@(string.IsNullOrWhiteSpace(client.Telephone) ? "-" : client.Telephone)</td>
+                            <td>@(string.IsNullOrWhiteSpace(client.Email) ? "-" : client.Email)</td>
+                            <td class="text-center">@(client.Categorie?.Nom ?? "-")</td>
+                            <td class="text-center">
+                                <span class="badge @GetStatusBadgeClass(client.Statut)">@client.Statut</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-inline-flex gap-1">
+                                    <a class="btn btn-sm btn-outline-info"
+                                       title="Voir details"
+                                       href="@($"/clients/{client.Id}")">
+                                        🔍
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            title="Modifier"
+                                            @onclick="() => ShowEditForm(client)">
+                                        Modifier
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            title="Supprimer"
+                                            @onclick="() => ShowDeleteConfirmation(client)">
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
@@ -107,6 +154,35 @@
     </div>
 </div>
 
+@* ── Delete Confirmation Modal ───────────────────────────────── *@
+@if (showDeleteConfirmation)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title">Supprimer le client</h5>
+                    <button type="button" class="btn-close" @onclick="HideDeleteConfirmation"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0 text-break">
+                        Voulez-vous vraiment supprimer
+                        <strong class="d-inline-block w-100 mt-1 text-break">@clientToDeleteName</strong> ?
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="HideDeleteConfirmation" disabled="@isDeleting">
+                        Annuler
+                    </button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteClientAsync" disabled="@isDeleting">
+                        @(isDeleting ? "Suppression..." : "Supprimer")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @* ── Create / Edit Form (collapsible) ─────────────────────────── *@
 @if (showForm)
 {
@@ -118,6 +194,13 @@
                     <button type="button" class="btn-close" @onclick="HideForm"></button>
                 </div>
                 <div class="modal-body">
+
+                    @if (showForm && summaryIsError && !string.IsNullOrWhiteSpace(summaryMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @summaryMessage
+                        </div>
+                    }
 
                     @* ── Tabs ── *@
                     <ul class="nav nav-tabs mb-3">
@@ -174,27 +257,34 @@
                                 {
                                     <div class="input-group">
                                         <input type="text" class="form-control" placeholder="Nouvelle catégorie"
+                                                 maxlength="30"
                                                @bind="newCategorieClient" @bind:event="oninput" />
                                         <button class="btn btn-success btn-sm" type="button"
-                                                disabled="@string.IsNullOrWhiteSpace(newCategorieClient)"
+                                                disabled="@(string.IsNullOrWhiteSpace(newCategorieClient) || isCreatingCategory)"
                                                 @onclick="AddCategorieClient">✓</button>
                                         <button class="btn btn-outline-secondary btn-sm" type="button"
+                                                disabled="@isCreatingCategory"
                                                 @onclick="CancelNewCategorieClient">✕</button>
                                     </div>
                                 }
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Nom / Raison sociale <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" placeholder="Ex: Société ABC" @bind="formNom" />
+                                <input type="text" class="form-control" placeholder="Ex: Société ABC" maxlength="50" @bind="formNom" />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Matricule fiscale <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" placeholder="0000000/X/X/X000" @bind="formMatriculeFiscale" />
+                                <input type="text"
+                                       class="form-control"
+                                       placeholder="0000000/X/X/X000"
+                                       maxlength="16"
+                                       value="@formMatriculeFiscale"
+                                       @oninput="OnMatriculeFiscaleInput" />
                                 <div class="form-text">Format : 7 chiffres / lettre / lettre / lettre + 3 chiffres</div>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Numéro RNE</label>
-                                <input type="text" class="form-control" placeholder="Ex: 1234567" @bind="formNumeroRne" />
+                                <input type="text" class="form-control" placeholder="Ex: 1234567" maxlength="20" @bind="formNumeroRne" />
                                 <div class="form-text">Registre National des Entreprises</div>
                             </div>
                             <div class="col-md-4">
@@ -217,15 +307,15 @@
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label">Adresse</label>
-                                <input type="text" class="form-control" placeholder="Numéro et nom de la rue" @bind="formAdresse" />
+                                <input type="text" class="form-control" placeholder="Numéro et nom de la rue" maxlength="50" @bind="formAdresse" />
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Code postal</label>
-                                <input type="text" class="form-control" placeholder="Ex: 1000" @bind="formCodePostal" />
+                                <input type="text" class="form-control" placeholder="Ex: 1000" maxlength="10" @bind="formCodePostal" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Ville</label>
-                                <input type="text" class="form-control" placeholder="Ex: Tunis" @bind="formVille" />
+                                <input type="text" class="form-control" placeholder="Ex: Tunis" maxlength="40" @bind="formVille" />
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label">Gouvernorat</label>
@@ -239,35 +329,35 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Pays</label>
-                                <input type="text" class="form-control" placeholder="Tunisie" @bind="formPays" />
+                                <input type="text" class="form-control" placeholder="Tunisie" maxlength="30" @bind="formPays" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Téléphone</label>
-                                <input type="tel" class="form-control" placeholder="+216 XX XXX XXX" @bind="formTelephone" />
+                                <input type="tel" class="form-control" placeholder="+216 XX XXX XXX" maxlength="20" @bind="formTelephone" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Téléphone 2</label>
-                                <input type="tel" class="form-control" placeholder="+216 XX XXX XXX" @bind="formTelephone2" />
+                                <input type="tel" class="form-control" placeholder="+216 XX XXX XXX" maxlength="20" @bind="formTelephone2" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Fax</label>
-                                <input type="tel" class="form-control" placeholder="+216 XX XXX XXX" @bind="formFax" />
+                                <input type="tel" class="form-control" placeholder="+216 XX XXX XXX" maxlength="20" @bind="formFax" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Email</label>
-                                <input type="email" class="form-control" placeholder="contact@exemple.tn" @bind="formEmail" />
+                                <input type="email" class="form-control" placeholder="contact@exemple.tn" maxlength="50" @bind="formEmail" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Site web</label>
-                                <input type="url" class="form-control" placeholder="https://exemple.tn" @bind="formSiteWeb" />
+                                <input type="text" class="form-control" placeholder="https://exemple.tn" maxlength="50" @bind="formSiteWeb" />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Nom du contact principal</label>
-                                <input type="text" class="form-control" placeholder="Prénom Nom" @bind="formNomContact" />
+                                <input type="text" class="form-control" placeholder="Prénom Nom" maxlength="50" @bind="formNomContact" />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Poste du contact</label>
-                                <input type="text" class="form-control" placeholder="Ex: Directeur financier" @bind="formPosteContact" />
+                                <input type="text" class="form-control" placeholder="Ex: Directeur financier" maxlength="50" @bind="formPosteContact" />
                             </div>
                         </div>
                     }
@@ -281,7 +371,7 @@
                                 <div class="input-group">
                                     <input type="number" class="form-control" step="0.001" min="0"
                                            placeholder="0.000" @bind="formPlafondCredit" />
-                                    <span class="input-group-text">TND</span>
+                                    <span class="input-group-text">@(string.IsNullOrWhiteSpace(formDevise) ? "TND" : formDevise)</span>
                                 </div>
                                 <div class="form-text">0 = pas de limite</div>
                             </div>
@@ -324,6 +414,7 @@
                             <div class="col-12">
                                 <label class="form-label">Notes / Observations</label>
                                 <textarea class="form-control" rows="6"
+                                          maxlength="2000"
                                           placeholder="Remarques internes, informations complémentaires..."
                                           @bind="formNotes"></textarea>
                                 <div class="form-text">Visible uniquement en interne — n'apparaît pas sur les factures.</div>
@@ -334,8 +425,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" @onclick="HideForm">Annuler</button>
-                    <button type="button" class="btn btn-primary" @onclick="SaveClient">
-                        @(isEditing ? "Mettre à jour" : "Enregistrer")
+                    <button type="button" class="btn btn-primary" @onclick="SaveClient" disabled="@isSaving">
+                        @(isSaving ? "Enregistrement..." : isEditing ? "Mettre a jour" : "Enregistrer")
                     </button>
                 </div>
             </div>
@@ -344,6 +435,8 @@
 }
 
 @code {
+    private const string MatriculePattern = @"^\d{7}/[A-Z]/[A-Z]/[A-Z]\d{3}$";
+
     // ── Search & filter state ──
     private string searchTerm = string.Empty;
     private string filterCategorie = string.Empty;
@@ -356,6 +449,7 @@
     // ── Form state ──
     private bool showForm = false;
     private bool isEditing = false;
+    private int? editingClientId;
     private int activeTab = 0;
 
     // Identification
@@ -391,9 +485,24 @@
     private string formNotes = string.Empty;
 
     // ── Dynamic category list (persisted via service later) ──
-    private List<string> categoriesClient = new() { "VIP", "PME", "Particulier", "Export" };
+    private List<CategorieClient> categoriesClientDb = [];
+    private List<string> categoriesClient = [];
     private bool showNewCategorieClient = false;
     private string newCategorieClient = string.Empty;
+    private bool isCreatingCategory;
+
+    // ── Data / feedback state ──
+    private List<Client> allClients = [];
+    private List<Client> filteredClients = [];
+    private string summaryMessage = string.Empty;
+    private bool summaryIsError;
+    private bool isSaving;
+    private bool isDeleting;
+
+    // ── Delete confirmation state ──
+    private bool showDeleteConfirmation;
+    private int? clientToDeleteId;
+    private string clientToDeleteName = string.Empty;
 
     // ── Tunisian governorates ──
     private static readonly string[] Gouvernorats =
@@ -403,6 +512,20 @@
         "Monastir", "Nabeul", "Sfax", "Sidi Bouzid", "Siliana", "Sousse",
         "Tataouine", "Tozeur", "Tunis", "Zaghouan"
     ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPageDataAsync();
+    }
+
+    private async Task LoadPageDataAsync()
+    {
+        categoriesClientDb = await ClientService.GetCategoriesAsync();
+        categoriesClient = categoriesClientDb.Select(c => c.Nom).ToList();
+
+        allClients = await ClientService.GetAllAsync();
+        ApplyFilters();
+    }
 
     private void OnFormCategorieClientChanged(ChangeEventArgs e)
     {
@@ -418,16 +541,54 @@
         }
     }
 
-    private void AddCategorieClient()
+    private async Task AddCategorieClient()
     {
         var trimmed = newCategorieClient.Trim();
-        if (!string.IsNullOrEmpty(trimmed) && !categoriesClient.Contains(trimmed))
+        if (string.IsNullOrWhiteSpace(trimmed) || isCreatingCategory)
         {
-            categoriesClient.Add(trimmed);
+            return;
         }
-        formCategorie = trimmed;
-        showNewCategorieClient = false;
-        newCategorieClient = string.Empty;
+
+        isCreatingCategory = true;
+        try
+        {
+            var existing = categoriesClientDb
+                .FirstOrDefault(c => string.Equals(c.Nom, trimmed, StringComparison.OrdinalIgnoreCase));
+
+            if (existing is null)
+            {
+                var created = await ClientService.CreateCategorieAsync(trimmed);
+                categoriesClientDb.Add(created);
+            }
+
+            categoriesClient = categoriesClientDb
+                .Select(c => c.Nom)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(n => n)
+                .ToList();
+
+            formCategorie = categoriesClient
+                .First(c => string.Equals(c, trimmed, StringComparison.OrdinalIgnoreCase));
+
+            summaryMessage = string.Empty;
+            summaryIsError = false;
+            showNewCategorieClient = false;
+            newCategorieClient = string.Empty;
+        }
+        catch (ValidationException ex)
+        {
+            summaryIsError = true;
+            summaryMessage = ex.Message;
+        }
+        catch
+        {
+            summaryIsError = true;
+            summaryMessage = "Impossible de créer la categorie pour le moment.";
+        }
+        finally
+        {
+            isCreatingCategory = false;
+        }
     }
 
     private void CancelNewCategorieClient()
@@ -438,10 +599,65 @@
 
     private void ShowCreateForm()
     {
+        summaryMessage = string.Empty;
+        summaryIsError = false;
         isEditing = false;
+        editingClientId = null;
         activeTab = 0;
         ResetForm();
         showForm = true;
+    }
+
+    private void ShowEditForm(Client client)
+    {
+        summaryMessage = string.Empty;
+        summaryIsError = false;
+
+        isEditing = true;
+        editingClientId = client.Id;
+        activeTab = 0;
+        showForm = true;
+
+        formTypeClient = client.TypeClient switch
+        {
+            TypeClient.PersonnePhysique => "Personne physique",
+            TypeClient.PersonneMorale => "Personne morale",
+            _ => string.Empty
+        };
+        formStatut = client.Statut.ToString();
+        formCategorie = client.Categorie?.Nom ?? string.Empty;
+        formNom = client.Nom;
+        formMatriculeFiscale = client.MatriculeFiscale;
+        formNumeroRne = client.NumeroRne ?? string.Empty;
+        formFormeJuridique = client.FormeJuridique?.ToString() ?? string.Empty;
+        formAdresse = client.Adresse ?? string.Empty;
+        formCodePostal = client.CodePostal ?? string.Empty;
+        formVille = client.Ville ?? string.Empty;
+        formGouvernorat = client.Gouvernorat ?? string.Empty;
+        formPays = client.Pays;
+        formTelephone = client.Telephone ?? string.Empty;
+        formTelephone2 = client.Telephone2 ?? string.Empty;
+        formFax = client.Fax ?? string.Empty;
+        formEmail = client.Email ?? string.Empty;
+        formSiteWeb = client.SiteWeb ?? string.Empty;
+        formNomContact = client.NomContact ?? string.Empty;
+        formPosteContact = client.PosteContact ?? string.Empty;
+        formPlafondCredit = client.PlafondCredit;
+        formModePaiement = client.ModePaiement switch
+        {
+            ModePaiement.Virement => "Virement",
+            ModePaiement.Cheque => "Chèque",
+            ModePaiement.Especes => "Espèces",
+            ModePaiement.Traite => "Traite",
+            ModePaiement.CarteBancaire => "Carte",
+            _ => string.Empty
+        };
+        formDevise = client.Devise;
+        formRemise = client.RemiseParDefaut;
+        formNotes = client.Notes ?? string.Empty;
+
+        showNewCategorieClient = false;
+        newCategorieClient = string.Empty;
     }
 
     private void HideForm()
@@ -452,10 +668,12 @@
     private void ClearSearch()
     {
         searchTerm = string.Empty;
+        ApplyFilters();
     }
 
     private void ResetForm()
     {
+        editingClientId = null;
         formTypeClient = string.Empty;
         formStatut = "Actif";
         formCategorie = string.Empty;
@@ -480,11 +698,317 @@
         formDevise = "TND";
         formRemise = 0;
         formNotes = string.Empty;
+        showNewCategorieClient = false;
+        newCategorieClient = string.Empty;
     }
 
-    private void SaveClient()
+    private void OnMatriculeFiscaleInput(ChangeEventArgs e)
     {
-        // TODO: call IClientService to persist
-        HideForm();
+        formMatriculeFiscale = FormatMatriculeFiscale(e.Value?.ToString());
+    }
+
+    private static string FormatMatriculeFiscale(string? rawValue)
+    {
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            return string.Empty;
+        }
+
+        var compact = new string(rawValue
+            .Where(char.IsLetterOrDigit)
+            .Select(char.ToUpperInvariant)
+            .Take(13)
+            .ToArray());
+
+        if (compact.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        var parts = new List<string>
+        {
+            compact[..Math.Min(7, compact.Length)]
+        };
+
+        if (compact.Length > 7)
+        {
+            parts.Add(compact[7].ToString());
+        }
+
+        if (compact.Length > 8)
+        {
+            parts.Add(compact[8].ToString());
+        }
+
+        if (compact.Length > 9)
+        {
+            parts.Add(compact[9..Math.Min(13, compact.Length)]);
+        }
+
+        return string.Join("/", parts);
+    }
+
+    private void ShowDeleteConfirmation(Client client)
+    {
+        summaryMessage = string.Empty;
+        summaryIsError = false;
+        clientToDeleteId = client.Id;
+        clientToDeleteName = client.Nom;
+        showDeleteConfirmation = true;
+    }
+
+    private void HideDeleteConfirmation()
+    {
+        showDeleteConfirmation = false;
+        clientToDeleteId = null;
+        clientToDeleteName = string.Empty;
+    }
+
+    private async Task ConfirmDeleteClientAsync()
+    {
+        if (isDeleting || clientToDeleteId is null)
+        {
+            return;
+        }
+
+        isDeleting = true;
+        summaryMessage = string.Empty;
+        summaryIsError = false;
+
+        try
+        {
+            await ClientService.DeleteAsync(clientToDeleteId.Value);
+            await LoadPageDataAsync();
+
+            summaryIsError = false;
+            summaryMessage = "Client supprimé avec succès.";
+            HideDeleteConfirmation();
+        }
+        catch (InvalidOperationException ex)
+        {
+            summaryIsError = true;
+            summaryMessage = ex.Message;
+        }
+        catch
+        {
+            summaryIsError = true;
+            summaryMessage = "Une erreur est survenue lors de la suppression du client.";
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        IEnumerable<Client> query = allClients;
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(c =>
+                c.Nom.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                c.MatriculeFiscale.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrWhiteSpace(c.Email) && c.Email.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(c.Telephone) && c.Telephone.Contains(term, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filterCategorie))
+        {
+            query = query.Where(c => string.Equals(c.Categorie?.Nom, filterCategorie, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filterStatut) && Enum.TryParse<StatutClient>(filterStatut, true, out var statut))
+        {
+            query = query.Where(c => c.Statut == statut);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filterGouvernorat))
+        {
+            query = query.Where(c => string.Equals(c.Gouvernorat, filterGouvernorat, StringComparison.OrdinalIgnoreCase));
+        }
+
+        filteredClients = query
+            .OrderByDescending(c => c.DateCreation)
+            .ToList();
+
+        filteredCount = filteredClients.Count;
+        currentStart = filteredCount == 0 ? 0 : 1;
+        currentEnd = filteredCount;
+    }
+
+    private async Task SaveClient()
+    {
+        if (isSaving)
+        {
+            return;
+        }
+
+        summaryMessage = string.Empty;
+        summaryIsError = false;
+
+        var client = BuildClientFromForm();
+        client.CategorieClientId = await ResolveSelectedCategoryIdAsync(formCategorie);
+        var validationResults = new List<ValidationResult>();
+        var validationContext = new ValidationContext(client);
+
+        if (!Validator.TryValidateObject(client, validationContext, validationResults, validateAllProperties: true))
+        {
+            summaryIsError = true;
+            summaryMessage = validationResults[0].ErrorMessage ?? "Veuillez verifier les informations du formulaire.";
+            return;
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(client.MatriculeFiscale, MatriculePattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+        {
+            summaryIsError = true;
+            summaryMessage = "Format matricule fiscale invalide. Exemple: 0000000/X/X/X000";
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            if (isEditing && editingClientId.HasValue)
+            {
+                client.Id = editingClientId.Value;
+                await ClientService.UpdateAsync(client);
+                summaryMessage = "Client mis a jour avec succes.";
+            }
+            else
+            {
+                await ClientService.CreateAsync(client);
+                summaryMessage = "Client créé avec succès.";
+            }
+
+            await LoadPageDataAsync();
+
+            summaryIsError = false;
+            HideForm();
+            ResetForm();
+        }
+        catch (ValidationException ex)
+        {
+            summaryIsError = true;
+            summaryMessage = ex.Message;
+        }
+        catch
+        {
+            summaryIsError = true;
+            summaryMessage = isEditing
+                ? "Une erreur est survenue lors de la mise a jour du client."
+                : "Une erreur est survenue lors de la création du client.";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private Client BuildClientFromForm()
+    {
+        var typeClient = formTypeClient switch
+        {
+            "Personne physique" => TypeClient.PersonnePhysique,
+            "Personne morale" => TypeClient.PersonneMorale,
+            _ => TypeClient.NonDefini
+        };
+
+        var statut = Enum.TryParse<StatutClient>(formStatut, true, out var parsedStatut)
+            ? parsedStatut
+            : StatutClient.Actif;
+
+        FormeJuridique? formeJuridique = null;
+        if (Enum.TryParse<FormeJuridique>(formFormeJuridique, true, out var parsedFormeJuridique))
+        {
+            formeJuridique = parsedFormeJuridique;
+        }
+
+        return new Client
+        {
+            TypeClient = typeClient,
+            Statut = statut,
+            CategorieClientId = null,
+            Nom = (formNom ?? string.Empty).Trim(),
+            MatriculeFiscale = (formMatriculeFiscale ?? string.Empty).Trim().ToUpperInvariant(),
+            NumeroRne = NullIfWhiteSpace(formNumeroRne),
+            FormeJuridique = formeJuridique,
+            Adresse = NullIfWhiteSpace(formAdresse),
+            CodePostal = NullIfWhiteSpace(formCodePostal),
+            Ville = NullIfWhiteSpace(formVille),
+            Gouvernorat = NullIfWhiteSpace(formGouvernorat),
+            Pays = string.IsNullOrWhiteSpace(formPays) ? "Tunisie" : formPays.Trim(),
+            Telephone = NullIfWhiteSpace(formTelephone),
+            Telephone2 = NullIfWhiteSpace(formTelephone2),
+            Fax = NullIfWhiteSpace(formFax),
+            Email = NullIfWhiteSpace(formEmail),
+            SiteWeb = NullIfWhiteSpace(formSiteWeb),
+            NomContact = NullIfWhiteSpace(formNomContact),
+            PosteContact = NullIfWhiteSpace(formPosteContact),
+            PlafondCredit = formPlafondCredit,
+            ModePaiement = ParseModePaiement(formModePaiement),
+            Devise = string.IsNullOrWhiteSpace(formDevise) ? "TND" : formDevise.Trim(),
+            RemiseParDefaut = formRemise,
+            Notes = NullIfWhiteSpace(formNotes)
+        };
+    }
+
+    private async Task<int?> ResolveSelectedCategoryIdAsync(string? selectedCategoryName)
+    {
+        if (string.IsNullOrWhiteSpace(selectedCategoryName))
+        {
+            return null;
+        }
+
+        var existing = categoriesClientDb
+            .FirstOrDefault(c => string.Equals(c.Nom, selectedCategoryName, StringComparison.OrdinalIgnoreCase));
+
+        if (existing is not null)
+        {
+            return existing.Id;
+        }
+
+        var created = await ClientService.CreateCategorieAsync(selectedCategoryName);
+        categoriesClientDb.Add(created);
+        categoriesClient = categoriesClientDb.Select(c => c.Nom).OrderBy(n => n).ToList();
+        return created.Id;
+    }
+
+    private static string? NullIfWhiteSpace(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private static ModePaiement? ParseModePaiement(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return value.Trim() switch
+        {
+            "Virement" => ModePaiement.Virement,
+            "Chèque" => ModePaiement.Cheque,
+            "Cheque" => ModePaiement.Cheque,
+            "Espèces" => ModePaiement.Especes,
+            "Especes" => ModePaiement.Especes,
+            "Traite" => ModePaiement.Traite,
+            "Carte" => ModePaiement.CarteBancaire,
+            "Carte bancaire" => ModePaiement.CarteBancaire,
+            _ => null
+        };
+    }
+
+    private static string GetStatusBadgeClass(StatutClient statut)
+    {
+        return statut switch
+        {
+            StatutClient.Actif => "bg-success-subtle text-success-emphasis",
+            StatutClient.Inactif => "bg-secondary-subtle text-secondary-emphasis",
+            StatutClient.Suspendu => "bg-warning-subtle text-warning-emphasis",
+            _ => "bg-light text-dark"
+        };
     }
 }
