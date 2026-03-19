@@ -1,0 +1,225 @@
+@page "/produits/{Id:int}"
+@rendermode InteractiveServer
+@using FacturationTN.Models
+@using FacturationTN.Models.Enums
+@using FacturationTN.Services.Interfaces
+@inject IProduitService ProduitService
+
+<PageTitle>Fiche produit</PageTitle>
+
+<div class="produit-details-shell">
+@if (isLoading)
+{
+    <div class="card border-0 shadow-sm state-card">
+        <div class="card-body py-5 text-center text-muted">
+            Chargement de la fiche produit...
+        </div>
+    </div>
+}
+else if (produit is null)
+{
+    <div class="card border-0 shadow-sm state-card">
+        <div class="card-body py-5 text-center">
+            <h1 class="h4 mb-3">Produit introuvable</h1>
+            <p class="text-muted mb-4">Le produit demande n'existe pas ou a ete supprime.</p>
+            <a class="btn btn-outline-primary" href="/produits">Retour a la liste</a>
+        </div>
+    </div>
+}
+else
+{
+    <section class="hero-panel mb-4">
+        <div class="hero-inner">
+            <div>
+                <p class="eyebrow mb-2">Fiche produit</p>
+                <h1 class="mb-2 details-title details-break">@produit.Designation</h1>
+                <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                    <span class="badge @GetStatusBadgeClass(produit.Statut)">@GetStatutLabel(produit.Statut)</span>
+                    <span class="badge text-bg-light border">@GetTypeLabel(produit.TypeProduit)</span>
+                    <span class="pill-soft">Ref: @produit.Reference</span>
+                </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
+                <a class="btn btn-outline-secondary details-action-btn" href="/produits">Retour</a>
+                <a class="btn btn-primary details-action-btn" href="@($"/produits?editId={produit.Id}")">Modifier depuis la liste</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-8">
+            <div class="card border-0 shadow-sm details-card mb-3">
+                <div class="card-header bg-white fw-semibold section-header">Identification</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="details-label">Reference</div>
+                            <div class="details-value">@produit.Reference</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Categorie</div>
+                            <div class="details-value">@(produit.Categorie?.Nom ?? "-")</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Marque</div>
+                            <div class="details-value">@(string.IsNullOrWhiteSpace(produit.Marque) ? "-" : produit.Marque)</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Unite de mesure</div>
+                            <div class="details-value">@(produit.UniteMesure?.Nom ?? "-")</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Date de creation</div>
+                            <div class="details-value">@produit.DateCreation.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Derniere modification</div>
+                            <div class="details-value">
+                                @(produit.DateModification.HasValue
+                                    ? produit.DateModification.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    : "-")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm details-card mb-3">
+                <div class="card-header bg-white fw-semibold section-header">Tarification</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="details-label">Prix achat HT</div>
+                            <div class="details-value">@produit.PrixAchatHT.ToString("N3") TND</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Prix vente HT</div>
+                            <div class="details-value">@produit.PrixVenteHT.ToString("N3") TND</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Taux TVA</div>
+                            <div class="details-value">@produit.TauxTva %</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Prix TTC</div>
+                            <div class="details-value">@produit.PrixTTC.ToString("N3") TND</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Marge brute</div>
+                            <div class="details-value">@produit.MargeBrute.ToString("N3") TND</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="details-label">Remise maximale</div>
+                            <div class="details-value">@produit.RemiseMax.ToString("0.##") %</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm details-card notes-card">
+                <div class="card-header bg-white fw-semibold section-header">Description et notes</div>
+                <div class="card-body">
+                    <div class="details-label">Description</div>
+                    @if (string.IsNullOrWhiteSpace(produit.Description))
+                    {
+                        <p class="mb-3 text-muted">Aucune description.</p>
+                    }
+                    else
+                    {
+                        <p class="mb-3 details-break">@produit.Description</p>
+                    }
+
+                    <div class="details-label">Notes internes</div>
+                    @if (string.IsNullOrWhiteSpace(produit.Notes))
+                    {
+                        <p class="mb-0 text-muted">Aucune note enregistree.</p>
+                    }
+                    else
+                    {
+                        <p class="mb-0 details-break">@produit.Notes</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow-sm accent-card details-card mb-3">
+                <div class="card-header bg-transparent border-0 pt-3 pb-0 fw-semibold section-header">Stock</div>
+                <div class="card-body pt-2">
+                    <div class="metric-row">
+                        <span class="details-label">Suivi stock</span>
+                        <strong>@(produit.SuiviStock ? "Active" : "Désactivé")</strong>
+                    </div>
+                    <div class="metric-row">
+                        <span class="details-label">Quantite</span>
+                        <strong>@(produit.SuiviStock ? produit.QuantiteStock.ToString("N0") : "-")</strong>
+                    </div>
+                    <div class="metric-row mb-0">
+                        <span class="details-label">Seuil alerte</span>
+                        <strong>@(produit.SuiviStock ? produit.SeuilAlerte.ToString("N0") : "-")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm details-card">
+                <div class="card-header bg-white fw-semibold section-header">Synthese</div>
+                <div class="card-body">
+                    <div class="details-label">Type</div>
+                    <div class="details-value mb-3">@GetTypeLabel(produit.TypeProduit)</div>
+
+                    <div class="details-label">Statut</div>
+                    <div class="details-value mb-3">@GetStatutLabel(produit.Statut)</div>
+
+                    <div class="details-label">Valeur TTC unitaire</div>
+                    <div class="details-value">@produit.PrixTTC.ToString("N3") TND</div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Produit? produit;
+    private bool isLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        produit = await ProduitService.GetByIdAsync(Id);
+        isLoading = false;
+    }
+
+    private static string GetTypeLabel(TypeProduit typeProduit)
+    {
+        return typeProduit switch
+        {
+            TypeProduit.Produit => "Produit",
+            TypeProduit.Service => "Service",
+            _ => "Non defini"
+        };
+    }
+
+    private static string GetStatutLabel(StatutProduit statut)
+    {
+        return statut switch
+        {
+            StatutProduit.Discontinue => "Discontinue",
+            _ => statut.ToString()
+        };
+    }
+
+    private static string GetStatusBadgeClass(StatutProduit statut)
+    {
+        return statut switch
+        {
+            StatutProduit.Actif => "bg-success-subtle text-success-emphasis border",
+            StatutProduit.Inactif => "bg-secondary-subtle text-secondary-emphasis border",
+            StatutProduit.Discontinue => "bg-warning-subtle text-warning-emphasis border",
+            _ => "bg-light text-dark border"
+        };
+    }
+}

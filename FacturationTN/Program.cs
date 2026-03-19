@@ -15,6 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IProduitService, ProduitService>();
 
 var app = builder.Build();
 

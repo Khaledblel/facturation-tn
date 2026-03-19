@@ -27,11 +27,11 @@ public class Produit
     public string Reference { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "La désignation est obligatoire.")]
-    [MaxLength(200)]
+    [MaxLength(50)]
     public string Designation { get; set; } = string.Empty;
 
     /// <summary>Non applicable pour les services.</summary>
-    [MaxLength(100)]
+    [MaxLength(30)]
     public string? Marque { get; set; }
 
     /// <summary>FK vers l'unité de mesure dynamique.</summary>
@@ -44,13 +44,13 @@ public class Produit
 
     /// <summary>Prix d'achat HT (produit) ou coût de revient HT (service).</summary>
     [Column(TypeName = "decimal(18,3)")]
-    [Range(0, (double)decimal.MaxValue, ErrorMessage = "Le prix d'achat HT ne peut pas être négatif.")]
+    [Range(0, 9999999.999, ErrorMessage = "Le prix d'achat HT doit être entre 0 et 9 999 999.999.")]
     public decimal PrixAchatHT { get; set; }
 
     /// <summary>Prix de vente HT (produit) ou tarif HT (service).</summary>
     [Required(ErrorMessage = "Le prix de vente HT est obligatoire.")]
     [Column(TypeName = "decimal(18,3)")]
-    [Range(0, (double)decimal.MaxValue, ErrorMessage = "Le prix de vente HT ne peut pas être négatif.")]
+    [Range(0, 9999999.999, ErrorMessage = "Le prix de vente HT doit être entre 0 et 9 999 999.999.")]
     public decimal PrixVenteHT { get; set; }
 
     /// <summary>Taux TVA applicable (0, 7, 13 ou 19).</summary>
@@ -59,7 +59,7 @@ public class Produit
 
     /// <summary>Remise maximale autorisée (%).</summary>
     [Column(TypeName = "decimal(5,2)")]
-    [Range(0, 100, ErrorMessage = "La remise doit être entre 0 et 100 %.")]
+    [Range(0, 100, ErrorMessage = "La remise maximale doit être entre 0 et 100 %.")]
     public decimal RemiseMax { get; set; }
 
     // ── Propriétés calculées (non mappées en DB) ──
@@ -76,20 +76,20 @@ public class Produit
 
     public bool SuiviStock { get; set; }
 
-    [Range(0, int.MaxValue, ErrorMessage = "La quantité en stock ne peut pas être négative.")]
+    [Range(0, 1000000, ErrorMessage = "La quantité en stock doit être entre 0 et 1 000 000.")]
     public int QuantiteStock { get; set; }
 
-    [Range(0, int.MaxValue, ErrorMessage = "Le seuil d'alerte ne peut pas être négatif.")]
+    [Range(0, 1000000, ErrorMessage = "Le seuil d'alerte doit être entre 0 et 1 000 000.")]
     public int SeuilAlerte { get; set; }
 
     // ════════════════════════════════════════════════════════════
     // Description & Notes
     // ════════════════════════════════════════════════════════════
 
-    [MaxLength(2000)]
+    [MaxLength(1000)]
     public string? Description { get; set; }
 
-    [MaxLength(2000)]
+    [MaxLength(1000)]
     public string? Notes { get; set; }
 
     // ════════════════════════════════════════════════════════════

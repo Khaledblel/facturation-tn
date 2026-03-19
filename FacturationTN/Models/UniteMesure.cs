@@ -11,7 +11,7 @@ public class UniteMesure
     public int Id { get; set; }
 
     [Required(ErrorMessage = "Le nom de l'unité est obligatoire.")]
-    [MaxLength(50)]
+    [MaxLength(20)]
     public string Nom { get; set; } = string.Empty;
 
     // ── Navigation ──
