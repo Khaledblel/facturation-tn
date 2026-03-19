@@ -41,8 +41,8 @@ else
     
             </div>
             <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
-                <a class="btn btn-light btn-elevated" href="/clients">Retour</a>
-                <a class="btn btn-primary btn-elevated" href="/clients">Modifier depuis la liste</a>
+                <a class="btn btn-outline-secondary details-action-btn" href="/clients">Retour</a>
+                <a class="btn btn-primary details-action-btn" href="@($"/clients?editId={client.Id}")">Modifier depuis la liste</a>
             </div>
         </div>
     </section>
@@ -125,20 +125,20 @@ else
                 <div class="card-header bg-transparent border-0 pt-3 pb-0 fw-semibold section-header">Apercu commercial</div>
                 <div class="card-body pt-2">
                     <div class="metric-row">
-                        <span>Plafond credit</span>
-                        <strong>@client.PlafondCredit.ToString("0.000") TND</strong>
+                        <span class="details-label">Plafond credit</span>
+                        @client.PlafondCredit.ToString("0.000") TND
                     </div>
                     <div class="metric-row">
-                        <span>Mode paiement prefere</span>
-                        <strong>@GetModePaiementLabel(client.ModePaiement)</strong>
+                        <span class="details-label">Mode paiement prefere</span>
+                        @GetModePaiementLabel(client.ModePaiement)
                     </div>
                     <div class="metric-row">
-                        <span>Devise</span>
-                        <strong>@client.Devise</strong>
+                        <span class="details-label">Devise</span>
+                        @client.Devise
                     </div>
                     <div class="metric-row mb-0">
-                        <span>Remise par defaut</span>
-                        <strong>@client.RemiseParDefaut.ToString("0.##") %</strong>
+                        <span class="details-label">Remise par defaut</span>
+                        @client.RemiseParDefaut.ToString("0.##") %
                     </div>
                 </div>
             </div>

@@ -1,0 +1,277 @@
+.clients-shell {
+    --cl-bg-soft: #f3f7fb;
+    --cl-card-bg: #ffffff;
+    --cl-text-main: #0f172a;
+    --cl-text-muted: #475569;
+    --cl-stroke: rgba(15, 23, 42, 0.09);
+    --cl-accent: #0e7490;
+    --cl-accent-2: #2563eb;
+    --cl-warm: #f59e0b;
+    font-family: "Segoe UI Variable Display", "Trebuchet MS", "Gill Sans", sans-serif;
+    color: var(--cl-text-main);
+}
+
+.clients-hero {
+    border-radius: 1rem;
+    background:
+        radial-gradient(circle at 85% 10%, rgba(14, 116, 144, 0.2), transparent 34%),
+        radial-gradient(circle at 10% 95%, rgba(245, 158, 11, 0.22), transparent 36%),
+        linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0b3b52 100%);
+    color: #e6eef7;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+}
+
+.clients-hero-inner {
+    padding: 1.35rem 1.4rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.clients-eyebrow {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    color: rgba(230, 238, 247, 0.78);
+}
+
+.clients-title {
+    line-height: 1.14;
+    letter-spacing: -0.015em;
+    font-weight: 750;
+}
+
+.clients-subtitle {
+    max-width: 64ch;
+    font-size: 0.93rem;
+    color: rgba(230, 238, 247, 0.86);
+}
+
+.clients-btn-elevated {
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+    border: 0;
+}
+
+.clients-alert {
+    border-radius: 0.85rem;
+    border: 1px solid var(--cl-stroke);
+}
+
+.clients-card {
+    background: var(--cl-card-bg);
+    border: 1px solid var(--cl-stroke);
+    border-radius: 0.9rem;
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07) !important;
+}
+
+.clients-input-group .input-group-text,
+.clients-input-group .form-control,
+.clients-input-group .btn {
+    border-color: rgba(14, 116, 144, 0.2);
+}
+
+.clients-icon-search {
+    width: 1rem;
+    height: 1rem;
+    color: #0b3b52;
+}
+
+.clients-count-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #0b3b52;
+    background: rgba(14, 116, 144, 0.12);
+    border: 1px solid rgba(14, 116, 144, 0.24);
+}
+
+.clients-table thead th {
+    background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+    color: #334155;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 750;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.clients-table tbody td {
+    border-color: rgba(15, 23, 42, 0.06);
+}
+
+.clients-empty-row {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+.clients-footer {
+    border-top-color: rgba(15, 23, 42, 0.08);
+}
+
+.clients-break {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.clients-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 0.58rem;
+    font-weight: 630;
+    padding: 0.24rem 0.54rem;
+    border-width: 1px;
+}
+
+.clients-action-icon {
+    width: 0.88rem;
+    height: 0.88rem;
+    flex: 0 0 auto;
+}
+
+.clients-action-view {
+    color: #0b3b52;
+    border-color: rgba(14, 116, 144, 0.34);
+    background: rgba(14, 116, 144, 0.08);
+}
+
+.clients-action-view:hover {
+    color: #073244;
+    border-color: rgba(14, 116, 144, 0.5);
+    background: rgba(14, 116, 144, 0.16);
+}
+
+.clients-action-edit {
+    color: #0b4da8;
+    border-color: rgba(37, 99, 235, 0.34);
+    background: rgba(37, 99, 235, 0.08);
+}
+
+.clients-action-edit:hover {
+    color: #083e88;
+    border-color: rgba(37, 99, 235, 0.5);
+    background: rgba(37, 99, 235, 0.16);
+}
+
+.clients-action-delete {
+    color: #b42318;
+    border-color: rgba(220, 38, 38, 0.36);
+    background: rgba(220, 38, 38, 0.07);
+}
+
+.clients-action-delete:hover {
+    color: #8f1c14;
+    border-color: rgba(220, 38, 38, 0.52);
+    background: rgba(220, 38, 38, 0.15);
+}
+
+.clients-modal-backdrop {
+    backdrop-filter: blur(2px);
+}
+
+.clients-modal-content {
+    border-radius: 1rem;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.24) !important;
+}
+
+.clients-modal-header {
+    background:
+        radial-gradient(circle at 90% 10%, rgba(14, 116, 144, 0.18), transparent 35%),
+        linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.clients-danger-header {
+    background:
+        radial-gradient(circle at 90% 10%, rgba(239, 68, 68, 0.22), transparent 35%),
+        linear-gradient(180deg, #fff5f5 0%, #ffe8e8 100%);
+}
+
+.clients-modal-title {
+    font-weight: 760;
+    letter-spacing: -0.01em;
+    color: #0f172a;
+}
+
+.clients-modal-body {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+.clients-modal-footer {
+    border-top: 1px solid rgba(15, 23, 42, 0.1);
+    background: #f8fbff;
+}
+
+.clients-modal-btn {
+    border-radius: 0.65rem;
+    font-weight: 650;
+    min-width: 7.5rem;
+}
+
+.clients-modal-alert {
+    border-radius: 0.75rem;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+.clients-form-tabs {
+    border-bottom-color: rgba(15, 23, 42, 0.12);
+}
+
+.clients-tab-btn {
+    border: 0 !important;
+    color: #475569;
+    font-weight: 650;
+    border-radius: 0.7rem 0.7rem 0 0 !important;
+    padding: 0.6rem 0.85rem;
+}
+
+.clients-tab-btn.active {
+    color: #0b3b52 !important;
+    background: linear-gradient(180deg, #e9f7fb 0%, #f5fbff 100%) !important;
+    box-shadow: inset 0 -2px 0 rgba(14, 116, 144, 0.75);
+}
+
+.clients-form-dialog .form-control,
+.clients-form-dialog .form-select,
+.clients-form-dialog .input-group-text {
+    border-color: rgba(14, 116, 144, 0.2);
+}
+
+.clients-form-dialog .form-control:focus,
+.clients-form-dialog .form-select:focus {
+    border-color: rgba(14, 116, 144, 0.5);
+    box-shadow: 0 0 0 0.2rem rgba(14, 116, 144, 0.15);
+}
+
+.clients-delete-dialog {
+    max-width: 34rem;
+}
+
+@media (max-width: 991.98px) {
+    .clients-hero-inner {
+        padding: 1.15rem 1.05rem;
+    }
+
+    .clients-title {
+        font-size: 1.55rem;
+    }
+
+    .clients-modal-btn {
+        min-width: auto;
+    }
+
+    .clients-action-btn {
+        padding: 0.22rem 0.44rem;
+        font-size: 0.79rem;
+    }
+}

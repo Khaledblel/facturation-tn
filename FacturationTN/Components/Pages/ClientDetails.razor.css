@@ -54,6 +54,12 @@
     border: 0;
 }
 
+.details-action-btn {
+    border-radius: 0.65rem;
+    font-weight: 650;
+    min-width: 7.5rem;
+}
+
 .pill-soft {
     display: inline-flex;
     align-items: center;
@@ -148,5 +154,9 @@
 
     .metric-row {
         font-size: 0.92rem;
+    }
+
+    .details-action-btn {
+        min-width: auto;
     }
 }

@@ -5,30 +5,44 @@
 @using FacturationTN.Models.Enums
 @using FacturationTN.Services.Interfaces
 @inject IClientService ClientService
+@inject NavigationManager NavigationManager
 
 <PageTitle>Clients</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">Gestion des clients</h1>
-    <button class="btn btn-primary" @onclick="ShowCreateForm">
-        <span class="bi bi-plus-lg me-1">+</span> Nouveau client
-    </button>
-</div>
+<div class="clients-shell">
+<section class="clients-hero mb-4">
+    <div class="clients-hero-inner">
+        <div>
+            <p class="clients-eyebrow mb-2">Espace clients</p>
+            <h1 class="mb-2 clients-title">Gestion des clients</h1>
+        </div>
+        <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
+            <button class="btn btn-primary clients-modal-btn" @onclick="ShowCreateForm">
+                <span class="me-1">+</span> Nouveau client
+            </button>
+        </div>
+    </div>
+</section>
 
 @if (!string.IsNullOrWhiteSpace(summaryMessage))
 {
-    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success")" role="alert">
+    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success") clients-alert" role="alert">
         @summaryMessage
     </div>
 }
 
 @* ── Search / Filter Bar ─────────────────────────────────────── *@
-<div class="card border-0 shadow-sm mb-3">
+<div class="card border-0 shadow-sm clients-card mb-3">
     <div class="card-body py-2">
         <div class="row g-2 align-items-center">
             <div class="col-md-4">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white">🔍</span>
+                <div class="input-group input-group-sm clients-input-group">
+                    <span class="input-group-text bg-white">
+                        <svg class="clients-icon-search" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"></circle>
+                            <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                        </svg>
+                    </span>
                     <input type="text" class="form-control" placeholder="Rechercher par nom, matricule, email..."
                               @bind="searchTerm" @bind:event="oninput" @bind:after="ApplyFilters" />
                     @if (!string.IsNullOrEmpty(searchTerm))
@@ -64,18 +78,18 @@
                 </select>
             </div>
             <div class="col-md-2 text-end">
-                <span class="text-muted small">@filteredCount client(s) trouvé(s)</span>
+                <span class="clients-count-pill">@filteredCount client(s)</span>
             </div>
         </div>
     </div>
 </div>
 
 @* ── Client Table ─────────────────────────────────────────────── *@
-<div class="card border-0 shadow-sm">
+<div class="card border-0 shadow-sm clients-card clients-table-card">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-hover align-middle mb-0 clients-table">
+                <thead>
                     <tr>
                         <th>Nom / Raison sociale</th>
                         <th>Téléphone</th>
@@ -89,7 +103,7 @@
                     @if (filteredCount == 0)
                     {
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-5">
+                            <td colspan="6" class="text-center text-muted py-5 clients-empty-row">
                                 @if (!string.IsNullOrEmpty(searchTerm))
                                 {
                                     <span>Aucun client ne correspond à « @searchTerm »</span>
@@ -106,32 +120,43 @@
                         <tr>
                             <td>
                                 <div class="fw-semibold">@client.Nom</div>
-                                <div class="text-muted small">@client.MatriculeFiscale</div>
+                                <div class="text-muted small clients-break">@client.MatriculeFiscale</div>
                             </td>
-                            <td>@(string.IsNullOrWhiteSpace(client.Telephone) ? "-" : client.Telephone)</td>
-                            <td>@(string.IsNullOrWhiteSpace(client.Email) ? "-" : client.Email)</td>
+                            <td class="clients-break">@(string.IsNullOrWhiteSpace(client.Telephone) ? "-" : client.Telephone)</td>
+                            <td class="clients-break">@(string.IsNullOrWhiteSpace(client.Email) ? "-" : client.Email)</td>
                             <td class="text-center">@(client.Categorie?.Nom ?? "-")</td>
                             <td class="text-center">
                                 <span class="badge @GetStatusBadgeClass(client.Statut)">@client.Statut</span>
                             </td>
                             <td class="text-center">
                                 <div class="d-inline-flex gap-1">
-                                    <a class="btn btn-sm btn-outline-info"
+                                    <a class="btn btn-sm clients-action-btn clients-action-view"
                                        title="Voir details"
                                        href="@($"/clients/{client.Id}")">
-                                        🔍
+                                        <svg class="clients-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"></circle>
+                                            <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                                        </svg>
                                     </a>
                                     <button type="button"
-                                            class="btn btn-sm btn-outline-primary"
+                                            class="btn btn-sm clients-action-btn clients-action-edit"
                                             title="Modifier"
                                             @onclick="() => ShowEditForm(client)">
-                                        Modifier
+                                        <svg class="clients-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M4 20H8L18.5 9.5C19.1 8.9 19.1 7.9 18.5 7.3L16.7 5.5C16.1 4.9 15.1 4.9 14.5 5.5L4 16V20Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path>
+                                        </svg>
+                                        <span>Modifier</span>
                                     </button>
                                     <button type="button"
-                                            class="btn btn-sm btn-outline-danger"
+                                            class="btn btn-sm clients-action-btn clients-action-delete"
                                             title="Supprimer"
                                             @onclick="() => ShowDeleteConfirmation(client)">
-                                        Supprimer
+                                        <svg class="clients-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M5 7H19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+                                            <path d="M9 7V5.8C9 5.36 9.36 5 9.8 5H14.2C14.64 5 15 5.36 15 5.8V7" stroke="currentColor" stroke-width="1.7"></path>
+                                            <path d="M8 9.5V18C8 18.55 8.45 19 9 19H15C15.55 19 16 18.55 16 18V9.5" stroke="currentColor" stroke-width="1.7"></path>
+                                        </svg>
+                                        <span>Supprimer</span>
                                     </button>
                                 </div>
                             </td>
@@ -142,7 +167,7 @@
         </div>
     </div>
     @* ── Pagination ────────────────────────────────────────────── *@
-    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2 clients-footer">
         <span class="text-muted small">Affichage @currentStart–@currentEnd sur @filteredCount résultats</span>
         <nav>
             <ul class="pagination pagination-sm mb-0">
@@ -153,28 +178,30 @@
         </nav>
     </div>
 </div>
+</div>
 
 @* ── Delete Confirmation Modal ───────────────────────────────── *@
 @if (showDeleteConfirmation)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header">
-                    <h5 class="modal-title">Supprimer le client</h5>
+    <div class="modal fade show d-block clients-modal-backdrop" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered clients-delete-dialog">
+            <div class="modal-content border-0 shadow clients-modal-content clients-danger-modal">
+                <div class="modal-header clients-modal-header clients-danger-header">
+                    <h5 class="modal-title clients-modal-title">Supprimer le client</h5>
                     <button type="button" class="btn-close" @onclick="HideDeleteConfirmation"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body clients-modal-body">
+                    <p class="mb-2 small text-uppercase fw-semibold text-danger-emphasis">Action irreversible</p>
                     <p class="mb-0 text-break">
                         Voulez-vous vraiment supprimer
                         <strong class="d-inline-block w-100 mt-1 text-break">@clientToDeleteName</strong> ?
                     </p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" @onclick="HideDeleteConfirmation" disabled="@isDeleting">
+                <div class="modal-footer clients-modal-footer">
+                    <button type="button" class="btn btn-outline-secondary clients-modal-btn" @onclick="HideDeleteConfirmation" disabled="@isDeleting">
                         Annuler
                     </button>
-                    <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteClientAsync" disabled="@isDeleting">
+                    <button type="button" class="btn btn-danger clients-modal-btn" @onclick="ConfirmDeleteClientAsync" disabled="@isDeleting">
                         @(isDeleting ? "Suppression..." : "Supprimer")
                     </button>
                 </div>
@@ -186,35 +213,35 @@
 @* ── Create / Edit Form (collapsible) ─────────────────────────── *@
 @if (showForm)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header">
-                    <h5 class="modal-title">@(isEditing ? "Modifier le client" : "Nouveau client")</h5>
+    <div class="modal fade show d-block clients-modal-backdrop" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable clients-form-dialog">
+            <div class="modal-content border-0 shadow clients-modal-content">
+                <div class="modal-header clients-modal-header">
+                    <h5 class="modal-title clients-modal-title">@(isEditing ? "Modifier le client" : "Nouveau client")</h5>
                     <button type="button" class="btn-close" @onclick="HideForm"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body clients-modal-body">
 
                     @if (showForm && summaryIsError && !string.IsNullOrWhiteSpace(summaryMessage))
                     {
-                        <div class="alert alert-danger" role="alert">
+                        <div class="alert alert-danger clients-modal-alert" role="alert">
                             @summaryMessage
                         </div>
                     }
 
                     @* ── Tabs ── *@
-                    <ul class="nav nav-tabs mb-3">
+                    <ul class="nav nav-tabs mb-3 clients-form-tabs">
                         <li class="nav-item">
-                            <button class="nav-link @(activeTab == 0 ? "active" : "")" @onclick="() => activeTab = 0">Identification</button>
+                            <button class="nav-link clients-tab-btn @(activeTab == 0 ? "active" : "")" @onclick="() => activeTab = 0">Identification</button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link @(activeTab == 1 ? "active" : "")" @onclick="() => activeTab = 1">Adresse &amp; Contact</button>
+                            <button class="nav-link clients-tab-btn @(activeTab == 1 ? "active" : "")" @onclick="() => activeTab = 1">Adresse &amp; Contact</button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link @(activeTab == 2 ? "active" : "")" @onclick="() => activeTab = 2">Commercial</button>
+                            <button class="nav-link clients-tab-btn @(activeTab == 2 ? "active" : "")" @onclick="() => activeTab = 2">Commercial</button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link @(activeTab == 3 ? "active" : "")" @onclick="() => activeTab = 3">Notes</button>
+                            <button class="nav-link clients-tab-btn @(activeTab == 3 ? "active" : "")" @onclick="() => activeTab = 3">Notes</button>
                         </li>
                     </ul>
 
@@ -423,9 +450,9 @@
                     }
 
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" @onclick="HideForm">Annuler</button>
-                    <button type="button" class="btn btn-primary" @onclick="SaveClient" disabled="@isSaving">
+                <div class="modal-footer clients-modal-footer">
+                    <button type="button" class="btn btn-outline-secondary clients-modal-btn" @onclick="HideForm">Annuler</button>
+                    <button type="button" class="btn btn-primary clients-modal-btn" @onclick="SaveClient" disabled="@isSaving">
                         @(isSaving ? "Enregistrement..." : isEditing ? "Mettre a jour" : "Enregistrer")
                     </button>
                 </div>
@@ -435,6 +462,9 @@
 }
 
 @code {
+    [SupplyParameterFromQuery(Name = "editId")]
+    public int? EditId { get; set; }
+
     private const string MatriculePattern = @"^\d{7}/[A-Z]/[A-Z]/[A-Z]\d{3}$";
 
     // ── Search & filter state ──
@@ -503,6 +533,7 @@
     private bool showDeleteConfirmation;
     private int? clientToDeleteId;
     private string clientToDeleteName = string.Empty;
+    private int? lastHandledEditId;
 
     // ── Tunisian governorates ──
     private static readonly string[] Gouvernorats =
@@ -516,6 +547,12 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadPageDataAsync();
+        TryOpenEditFromQuery();
+    }
+
+    protected override void OnParametersSet()
+    {
+        TryOpenEditFromQuery();
     }
 
     private async Task LoadPageDataAsync()
@@ -525,6 +562,28 @@
 
         allClients = await ClientService.GetAllAsync();
         ApplyFilters();
+        TryOpenEditFromQuery();
+    }
+
+    private void TryOpenEditFromQuery()
+    {
+        if (!EditId.HasValue || EditId == lastHandledEditId || allClients.Count == 0)
+        {
+            return;
+        }
+
+        var requestedClient = allClients.FirstOrDefault(c => c.Id == EditId.Value);
+        lastHandledEditId = EditId;
+
+        if (requestedClient is null)
+        {
+            summaryIsError = true;
+            summaryMessage = "Le client a modifier est introuvable.";
+            return;
+        }
+
+        ShowEditForm(requestedClient);
+        NavigationManager.NavigateTo("/clients", replace: true);
     }
 
     private void OnFormCategorieClientChanged(ChangeEventArgs e)
