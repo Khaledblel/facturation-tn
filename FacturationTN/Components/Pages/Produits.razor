@@ -1,48 +1,35 @@
 @page "/produits"
 @rendermode InteractiveServer
+
 @using System.ComponentModel.DataAnnotations
 @using FacturationTN.Models
 @using FacturationTN.Models.Enums
 @using FacturationTN.Services.Interfaces
 @inject IProduitService ProduitService
-@inject NavigationManager NavigationManager
 
 <PageTitle>Produits</PageTitle>
 
-<div class="produits-shell">
-<section class="produits-hero mb-4">
-    <div class="produits-hero-inner">
-        <div>
-            <p class="produits-eyebrow mb-2">Catalogue produits</p>
-            <h1 class="mb-2 produits-title">Gestion des produits</h1>
-        </div>
-        <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
-            <button class="btn btn-primary produits-modal-btn" @onclick="ShowCreateForm">
-                <span class="me-1">+</span> Nouveau produit
-            </button>
-        </div>
-    </div>
-</section>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Gestion des produits</h1>
+    <button class="btn btn-primary" @onclick="ShowCreateForm">
+        <span class="me-1">+</span> Nouveau produit
+    </button>
+</div>
 
 @if (!string.IsNullOrWhiteSpace(summaryMessage))
 {
-    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success") mb-3" role="alert">
+    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success")" role="alert">
         @summaryMessage
     </div>
 }
 
 @* ── Search / Filter Bar ─────────────────────────────────────── *@
-<div class="card border-0 shadow-sm produits-card mb-3">
+<div class="card border-0 shadow-sm mb-3">
     <div class="card-body py-2">
         <div class="row g-2 align-items-center">
             <div class="col-md-3">
-                <div class="input-group input-group-sm produits-input-group">
-                    <span class="input-group-text bg-white">
-                        <svg class="produits-icon-search" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"></circle>
-                            <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-                        </svg>
-                    </span>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white">🔍</span>
                     <input type="text" class="form-control" placeholder="Rechercher par référence, désignation..."
                            @bind="searchTerm" @bind:event="oninput" @bind:after="ApplyFilters" />
                     @if (!string.IsNullOrEmpty(searchTerm))
@@ -85,18 +72,18 @@
                 </select>
             </div>
             <div class="col-md-2 text-end">
-                <span class="produits-count-pill">@filteredCount produit(s)</span>
+                <span class="text-muted small">@filteredCount produit(s)</span>
             </div>
         </div>
     </div>
 </div>
 
 @* ── Product Table ────────────────────────────────────────────── *@
-<div class="card border-0 shadow-sm produits-card produits-table-card">
+<div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 produits-table">
-                <thead>
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
                     <tr>
                         <th>Référence</th>
                         <th>Désignation</th>
@@ -104,14 +91,14 @@
                         <th class="text-center">Catégorie</th>
                         <th class="text-end">Prix TTC</th>
                         <th class="text-center">Statut</th>
-                        <th class="text-center" style="width: 260px;">Actions</th>
+                        <th class="text-center" style="width: 120px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (filteredCount == 0)
                     {
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-5 produits-empty-row">
+                            <td colspan="7" class="text-center text-muted py-5">
                                 @if (!string.IsNullOrEmpty(searchTerm) || filterTva >= 0)
                                 {
                                     <span>Aucun produit ne correspond aux critères de recherche.</span>
@@ -126,43 +113,26 @@
                     @foreach (var produit in filteredProduits)
                     {
                         <tr>
-                            <td>@produit.Reference</td>
-                            <td>@produit.Designation</td>
-                            <td class="text-center">@GetTypeLabel(produit.TypeProduit)</td>
-                            <td class="text-center">@(produit.Categorie?.Nom ?? "-")</td>
-                            <td class="text-end">@produit.PrixTTC.ToString("N3")</td>
-                            <td class="text-center">
-                                <span class="badge @GetStatusBadgeClass(produit.Statut)">@GetStatutLabel(produit.Statut)</span>
+                            <td>
+                                <div class="fw-semibold">@produit.Reference</div>
+                                <div class="text-muted small">@produit.Marque</div>
                             </td>
+                            <td>@produit.Designation</td>
+                            <td class="text-center">@(produit.TypeProduit == TypeProduit.Service ? "Service" : "Produit")</td>
+                            <td class="text-center">@((produit.Categorie?.Nom ?? "-"))</td>
+                            <td class="text-end">@produit.PrixTTC.ToString("N3") TND</td>
+                            <td class="text-center">@(
+                                produit.Statut == StatutProduit.Actif ? "Actif" :
+                                produit.Statut == StatutProduit.Inactif ? "Inactif" :
+                                "Discontinué"
+                            )</td>
                             <td class="text-center">
                                 <div class="d-inline-flex gap-1">
-                                    <a class="btn btn-sm produits-action-btn produits-action-view"
-                                       title="Voir details"
-                                       href="@($"/produits/{produit.Id}")">
-                                        <svg class="produits-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"></circle>
-                                            <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-                                        </svg>
-                                    </a>
-                                    <button type="button"
-                                            class="btn btn-sm produits-action-btn produits-action-edit"
-                                            title="Modifier"
-                                            @onclick="() => ShowEditForm(produit)">
-                                        <svg class="produits-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                            <path d="M4 20H8L18.5 9.5C19.1 8.9 19.1 7.9 18.5 7.3L16.7 5.5C16.1 4.9 15.1 4.9 14.5 5.5L4 16V20Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path>
-                                        </svg>
-                                        <span>Modifier</span>
+                                    <button class="btn btn-sm btn-outline-info" @onclick="() => ShowEditForm(produit)">
+                                        Modifier
                                     </button>
-                                    <button type="button"
-                                            class="btn btn-sm produits-action-btn produits-action-delete"
-                                            title="Supprimer"
-                                            @onclick="() => ShowDeleteConfirmation(produit)">
-                                        <svg class="produits-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                            <path d="M5 7H19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
-                                            <path d="M9 7V5.8C9 5.36 9.36 5 9.8 5H14.2C14.64 5 15 5.36 15 5.8V7" stroke="currentColor" stroke-width="1.7"></path>
-                                            <path d="M8 9.5V18C8 18.55 8.45 19 9 19H15C15.55 19 16 18.55 16 18V9.5" stroke="currentColor" stroke-width="1.7"></path>
-                                        </svg>
-                                        <span>Supprimer</span>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteProduitAsync(produit.Id)" disabled="@isBusy">
+                                        Supprimer
                                     </button>
                                 </div>
                             </td>
@@ -173,7 +143,7 @@
         </div>
     </div>
     @* ── Pagination ────────────────────────────────────────────── *@
-    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2 produits-footer">
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
         <span class="text-muted small">Affichage @currentStart–@currentEnd sur @filteredCount résultats</span>
         <nav>
             <ul class="pagination pagination-sm mb-0">
@@ -184,70 +154,32 @@
         </nav>
     </div>
 </div>
-</div>
-
-@* ── Delete Confirmation Modal ───────────────────────────────── *@
-@if (showDeleteConfirmation)
-{
-    <div class="modal fade show d-block produits-modal-backdrop" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered produits-delete-dialog">
-            <div class="modal-content border-0 shadow produits-modal-content produits-danger-modal">
-                <div class="modal-header produits-modal-header produits-danger-header">
-                    <h5 class="modal-title produits-modal-title">Supprimer le produit</h5>
-                    <button type="button" class="btn-close" @onclick="HideDeleteConfirmation"></button>
-                </div>
-                <div class="modal-body produits-modal-body">
-                    <p class="mb-2 small text-uppercase fw-semibold text-danger-emphasis">Action irreversible</p>
-                    <p class="mb-0 text-break">
-                        Voulez-vous vraiment supprimer
-                        <strong class="d-inline-block w-100 mt-1 text-break">@produitToDeleteName</strong> ?
-                    </p>
-                </div>
-                <div class="modal-footer produits-modal-footer">
-                    <button type="button" class="btn btn-outline-secondary produits-modal-btn" @onclick="HideDeleteConfirmation" disabled="@isDeleting">
-                        Annuler
-                    </button>
-                    <button type="button" class="btn btn-danger produits-modal-btn" @onclick="ConfirmDeleteProduitAsync" disabled="@isDeleting">
-                        @(isDeleting ? "Suppression..." : "Supprimer")
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
 
 @* ── Create / Edit Modal ──────────────────────────────────────── *@
 @if (showForm)
 {
-    <div class="modal fade show d-block produits-modal-backdrop" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable produits-form-dialog">
-            <div class="modal-content border-0 shadow produits-modal-content">
-                <div class="modal-header produits-modal-header">
-                    <h5 class="modal-title produits-modal-title">@(isEditing ? "Modifier le produit" : "Nouveau produit")</h5>
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(isEditing ? "Modifier le produit" : "Nouveau produit")</h5>
                     <button type="button" class="btn-close" @onclick="HideForm"></button>
                 </div>
-                <div class="modal-body produits-modal-body">
-
-                    @if (showForm && summaryIsError && !string.IsNullOrWhiteSpace(summaryMessage))
-                    {
-                        <div class="alert alert-danger produits-modal-alert" role="alert">
-                            @summaryMessage
-                        </div>
-                    }
+                <div class="modal-body">
 
                     @* ── Tabs ── *@
-                    <ul class="nav nav-tabs mb-3 produits-form-tabs">
+                    <ul class="nav nav-tabs mb-3">
                         <li class="nav-item">
-                            <button class="nav-link produits-tab-btn @(activeTab == 0 ? "active" : "")" @onclick="() => activeTab = 0">Identification</button>
+                            <button class="nav-link @(activeTab == 0 ? "active" : "")" @onclick="() => activeTab = 0">Identification</button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link produits-tab-btn @(activeTab == 1 ? "active" : "")" @onclick="() => activeTab = 1">Tarification</button>
+                            <button class="nav-link @(activeTab == 1 ? "active" : "")" @onclick="() => activeTab = 1">Tarification</button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link produits-tab-btn @(activeTab == 2 ? "active" : "") @(IsService ? "text-muted" : "")" @onclick="() => activeTab = 2">Stock</button>
+                            <button class="nav-link @(activeTab == 2 ? "active" : "") @(IsService ? "text-muted" : "")" @onclick="() => activeTab = 2">Stock</button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link produits-tab-btn @(activeTab == 3 ? "active" : "")" @onclick="() => activeTab = 3">Description &amp; Notes</button>
+                            <button class="nav-link @(activeTab == 3 ? "active" : "")" @onclick="() => activeTab = 3">Description &amp; Notes</button>
                         </li>
                     </ul>
 
@@ -282,13 +214,11 @@
                                 {
                                     <div class="input-group">
                                         <input type="text" class="form-control" placeholder="Nouvelle catégorie"
-                                               maxlength="30"
                                                @bind="newCategorieProduit" @bind:event="oninput" />
                                         <button class="btn btn-success btn-sm" type="button"
-                                            disabled="@(string.IsNullOrWhiteSpace(newCategorieProduit) || isCreatingCategory)"
+                                                disabled="@string.IsNullOrWhiteSpace(newCategorieProduit)"
                                                 @onclick="AddCategorieProduit">✓</button>
                                         <button class="btn btn-outline-secondary btn-sm" type="button"
-                                            disabled="@isCreatingCategory"
                                                 @onclick="CancelNewCategorieProduit">✕</button>
                                     </div>
                                 }
@@ -303,16 +233,16 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Référence <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" placeholder="Ex: PRD-001" maxlength="50" @bind="formReference" />
+                                <input type="text" class="form-control" placeholder="Ex: PRD-001" @bind="formReference" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Désignation <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" placeholder="Nom du produit" maxlength="50" @bind="formDesignation" />
+                                <input type="text" class="form-control" placeholder="Nom du produit" @bind="formDesignation" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label @(IsService ? "text-muted" : "")">Marque</label>
                                 <input type="text" class="form-control" placeholder="@(IsService ? "Non applicable" : "Ex: Samsung, Dell...")" 
-                                       maxlength="30" @bind="formMarque" disabled="@IsService" />
+                                       @bind="formMarque" disabled="@IsService" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Unité de mesure</label>
@@ -320,7 +250,6 @@
                                 {
                                     <select class="form-select" value="@formUnite"
                                             @onchange="OnFormUniteChanged">
-                                        <option value="">— Aucune —</option>
                                         @foreach (var u in unitesMesure)
                                         {
                                             <option value="@u">@u</option>
@@ -333,13 +262,11 @@
                                 {
                                     <div class="input-group">
                                         <input type="text" class="form-control" placeholder="Nouvelle unité"
-                                               maxlength="20"
                                                @bind="newUnite" @bind:event="oninput" />
                                         <button class="btn btn-success btn-sm" type="button"
-                                            disabled="@(string.IsNullOrWhiteSpace(newUnite) || isCreatingUnite)"
+                                                disabled="@string.IsNullOrWhiteSpace(newUnite)"
                                                 @onclick="AddUnite">✓</button>
                                         <button class="btn btn-outline-secondary btn-sm" type="button"
-                                            disabled="@isCreatingUnite"
                                                 @onclick="CancelNewUnite">✕</button>
                                     </div>
                                 }
@@ -354,7 +281,7 @@
                             <div class="col-md-4">
                                 <label class="form-label">@(IsService ? "Coût de revient HT" : "Prix d'achat HT")</label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control" step="0.001" min="0" max="9999999.999"
+                                    <input type="number" class="form-control" step="0.001" min="0"
                                            placeholder="0.000" @bind="formPrixAchatHT" />
                                     <span class="input-group-text">TND</span>
                                 </div>
@@ -363,7 +290,7 @@
                             <div class="col-md-4">
                                 <label class="form-label">@(IsService ? "Tarif HT" : "Prix de vente HT") <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control" step="0.001" min="0" max="9999999.999"
+                                    <input type="number" class="form-control" step="0.001" min="0"
                                            placeholder="0.000" @bind="formPrixHT" @bind:event="oninput" />
                                     <span class="input-group-text">TND</span>
                                 </div>
@@ -430,7 +357,6 @@
                                     <label class="form-label">Quantité en stock</label>
                                     <div class="input-group">
                                         <input type="number" class="form-control" min="0"
-                                                 max="1000000"
                                                placeholder="0" @bind="formQuantiteStock" />
                                         <span class="input-group-text">@formUnite</span>
                                     </div>
@@ -439,7 +365,6 @@
                                     <label class="form-label">Seuil d'alerte</label>
                                     <div class="input-group">
                                         <input type="number" class="form-control" min="0"
-                                                 max="1000000"
                                                placeholder="0" @bind="formSeuilAlerte" />
                                         <span class="input-group-text">@formUnite</span>
                                     </div>
@@ -466,7 +391,6 @@
                                 <label class="form-label">Description détaillée</label>
                                 <textarea class="form-control" rows="4"
                                           placeholder="Description complète du produit ou service..."
-                                          maxlength="1000"
                                           @bind="formDescription"></textarea>
                                 <div class="form-text">Peut apparaître sur les factures si nécessaire.</div>
                             </div>
@@ -474,7 +398,6 @@
                                 <label class="form-label">Notes internes</label>
                                 <textarea class="form-control" rows="4"
                                           placeholder="Remarques internes, fournisseur, conditions..."
-                                          maxlength="1000"
                                           @bind="formNotes"></textarea>
                                 <div class="form-text">Visible uniquement en interne — n'apparaît pas sur les factures.</div>
                             </div>
@@ -482,10 +405,10 @@
                     }
 
                 </div>
-                <div class="modal-footer produits-modal-footer">
-                    <button type="button" class="btn btn-outline-secondary produits-modal-btn" @onclick="HideForm">Annuler</button>
-                    <button type="button" class="btn btn-primary produits-modal-btn" @onclick="SaveProduitAsync" disabled="@isSaving">
-                        @(isSaving ? "Enregistrement..." : isEditing ? "Mettre à jour" : "Enregistrer")
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="HideForm">Annuler</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveProduit">
+                        @(isEditing ? "Mettre à jour" : "Enregistrer")
                     </button>
                 </div>
             </div>
@@ -494,8 +417,136 @@
 }
 
 @code {
-    [SupplyParameterFromQuery(Name = "editId")]
-    public int? EditId { get; set; }
+    private string? summaryMessage;
+    private bool summaryIsError = false;
+
+    private bool isBusy = false;
+
+    private List<Produit> allProduits = new();
+    private List<Produit> filteredProduits = new();
+
+    private List<CategorieProduit> categoriesProduitDb = new();
+    private List<UniteMesure> unitesMesureDb = new();
+
+    private int? editingProduitId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPageDataAsync();
+    }
+
+    private async Task LoadPageDataAsync()
+    {
+        summaryMessage = null;
+        summaryIsError = false;
+
+        categoriesProduitDb = await ProduitService.GetCategoriesAsync();
+        unitesMesureDb = await ProduitService.GetUnitesAsync();
+
+        categoriesProduit = categoriesProduitDb.Select(c => c.Nom).OrderBy(n => n).ToList();
+        unitesMesure = unitesMesureDb.Select(u => u.Nom).OrderBy(n => n).ToList();
+
+        allProduits = await ProduitService.GetAllAsync();
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        IEnumerable<Produit> query = allProduits;
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(p =>
+                p.Reference.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                p.Designation.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                (p.Marque != null && p.Marque.Contains(term, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filterType))
+        {
+            query = filterType switch
+            {
+                "Produit" => query.Where(p => p.TypeProduit == TypeProduit.Produit),
+                "Service" => query.Where(p => p.TypeProduit == TypeProduit.Service),
+                _ => query
+            };
+        }
+
+        if (!string.IsNullOrWhiteSpace(filterCategorie))
+        {
+            query = query.Where(p => p.Categorie != null && string.Equals(p.Categorie.Nom, filterCategorie, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filterStatut))
+        {
+            var statut = filterStatut switch
+            {
+                "Actif" => StatutProduit.Actif,
+                "Inactif" => StatutProduit.Inactif,
+                "Discontinué" => StatutProduit.Discontinue,
+                _ => (StatutProduit?)null
+            };
+
+            if (statut.HasValue)
+            {
+                query = query.Where(p => p.Statut == statut.Value);
+            }
+        }
+
+        if (filterTva >= 0)
+        {
+            query = query.Where(p => p.TauxTva == filterTva);
+        }
+
+        filteredProduits = query
+            .OrderByDescending(p => p.DateCreation)
+            .ToList();
+
+        filteredCount = filteredProduits.Count;
+        currentStart = filteredCount == 0 ? 0 : 1;
+        currentEnd = filteredCount;
+    }
+
+    private async Task<int?> ResolveCategorieProduitIdAsync(string? nom)
+    {
+        if (string.IsNullOrWhiteSpace(nom))
+        {
+            return null;
+        }
+
+        var name = nom.Trim();
+        var existing = categoriesProduitDb.FirstOrDefault(c => string.Equals(c.Nom, name, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            return existing.Id;
+        }
+
+        var created = await ProduitService.CreateCategorieAsync(name);
+        categoriesProduitDb.Add(created);
+        categoriesProduit = categoriesProduitDb.Select(c => c.Nom).OrderBy(n => n).ToList();
+        return created.Id;
+    }
+
+    private async Task<int?> ResolveUniteMesureIdAsync(string? nom)
+    {
+        if (string.IsNullOrWhiteSpace(nom))
+        {
+            return null;
+        }
+
+        var name = nom.Trim();
+        var existing = unitesMesureDb.FirstOrDefault(u => string.Equals(u.Nom, name, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            return existing.Id;
+        }
+
+        var created = await ProduitService.CreateUniteAsync(name);
+        unitesMesureDb.Add(created);
+        unitesMesure = unitesMesureDb.Select(u => u.Nom).OrderBy(n => n).ToList();
+        return created.Id;
+    }
 
     // ── Search & filter state ──
     private string searchTerm = string.Empty;
@@ -507,36 +558,17 @@
     private int currentStart = 0;
     private int currentEnd = 0;
 
-    // ── Dynamic lists ──
-    private List<CategorieProduit> categoriesProduitDb = [];
-    private List<string> categoriesProduit = [];
-    private List<UniteMesure> unitesMesureDb = [];
-    private List<string> unitesMesure = [];
+    // ── Dynamic lists (persisted via service later) ──
+    private List<string> categoriesProduit = new() { "Alimentaire", "Électronique", "Textile", "Service conseil", "Bâtiment", "Informatique" };
+    private List<string> unitesMesure = new() { "Pièce", "Kg", "Litre", "Mètre", "m²", "Heure", "Jour", "Forfait" };
     private bool showNewCategorieProduit = false;
     private string newCategorieProduit = string.Empty;
-    private bool isCreatingCategory;
     private bool showNewUnite = false;
     private string newUnite = string.Empty;
-    private bool isCreatingUnite;
-
-    // ── Data / feedback state ──
-    private List<Produit> allProduits = [];
-    private List<Produit> filteredProduits = [];
-    private string summaryMessage = string.Empty;
-    private bool summaryIsError;
-    private bool isSaving;
-    private bool isDeleting;
-
-    // ── Delete confirmation state ──
-    private bool showDeleteConfirmation;
-    private int? produitToDeleteId;
-    private string produitToDeleteName = string.Empty;
-    private int? lastHandledEditId;
 
     // ── Form state ──
     private bool showForm = false;
     private bool isEditing = false;
-    private int? editingProduitId;
     private int activeTab = 0;
 
     // Identification
@@ -568,51 +600,6 @@
     private decimal ComputedPrixTTC => formPrixHT * (1 + formTauxTva / 100m);
     private decimal ComputedMarge => formPrixHT - formPrixAchatHT;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadPageDataAsync();
-        TryOpenEditFromQuery();
-    }
-
-    protected override void OnParametersSet()
-    {
-        TryOpenEditFromQuery();
-    }
-
-    private async Task LoadPageDataAsync()
-    {
-        categoriesProduitDb = await ProduitService.GetCategoriesAsync();
-        categoriesProduit = categoriesProduitDb.Select(c => c.Nom).ToList();
-
-        unitesMesureDb = await ProduitService.GetUnitesAsync();
-        unitesMesure = unitesMesureDb.Select(u => u.Nom).ToList();
-
-        allProduits = await ProduitService.GetAllAsync();
-        ApplyFilters();
-        TryOpenEditFromQuery();
-    }
-
-    private void TryOpenEditFromQuery()
-    {
-        if (!EditId.HasValue || EditId == lastHandledEditId || allProduits.Count == 0)
-        {
-            return;
-        }
-
-        var requestedProduit = allProduits.FirstOrDefault(p => p.Id == EditId.Value);
-        lastHandledEditId = EditId;
-
-        if (requestedProduit is null)
-        {
-            summaryIsError = true;
-            summaryMessage = "Le produit a modifier est introuvable.";
-            return;
-        }
-
-        ShowEditForm(requestedProduit);
-        NavigationManager.NavigateTo("/produits", replace: true);
-    }
-
     private void OnFormCategorieProduitChanged(ChangeEventArgs e)
     {
         var val = e.Value?.ToString() ?? "";
@@ -627,54 +614,16 @@
         }
     }
 
-    private async Task AddCategorieProduit()
+    private void AddCategorieProduit()
     {
         var trimmed = newCategorieProduit.Trim();
-        if (string.IsNullOrWhiteSpace(trimmed) || isCreatingCategory)
+        if (!string.IsNullOrEmpty(trimmed) && !categoriesProduit.Contains(trimmed))
         {
-            return;
+            categoriesProduit.Add(trimmed);
         }
-
-        isCreatingCategory = true;
-        try
-        {
-            var existing = categoriesProduitDb
-                .FirstOrDefault(c => string.Equals(c.Nom, trimmed, StringComparison.OrdinalIgnoreCase));
-
-            if (existing is null)
-            {
-                var created = await ProduitService.CreateCategorieAsync(trimmed);
-                categoriesProduitDb.Add(created);
-            }
-
-            categoriesProduit = categoriesProduitDb
-                .Select(c => c.Nom)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(n => n)
-                .ToList();
-
-            formCategorie = categoriesProduit
-                .First(c => string.Equals(c, trimmed, StringComparison.OrdinalIgnoreCase));
-
-            showNewCategorieProduit = false;
-            newCategorieProduit = string.Empty;
-            summaryMessage = string.Empty;
-            summaryIsError = false;
-        }
-        catch (ValidationException ex)
-        {
-            summaryIsError = true;
-            summaryMessage = ex.Message;
-        }
-        catch
-        {
-            summaryIsError = true;
-            summaryMessage = "Impossible de créer la catégorie pour le moment.";
-        }
-        finally
-        {
-            isCreatingCategory = false;
-        }
+        formCategorie = trimmed;
+        showNewCategorieProduit = false;
+        newCategorieProduit = string.Empty;
     }
 
     private void CancelNewCategorieProduit()
@@ -697,54 +646,16 @@
         }
     }
 
-    private async Task AddUnite()
+    private void AddUnite()
     {
         var trimmed = newUnite.Trim();
-        if (string.IsNullOrWhiteSpace(trimmed) || isCreatingUnite)
+        if (!string.IsNullOrEmpty(trimmed) && !unitesMesure.Contains(trimmed))
         {
-            return;
+            unitesMesure.Add(trimmed);
         }
-
-        isCreatingUnite = true;
-        try
-        {
-            var existing = unitesMesureDb
-                .FirstOrDefault(u => string.Equals(u.Nom, trimmed, StringComparison.OrdinalIgnoreCase));
-
-            if (existing is null)
-            {
-                var created = await ProduitService.CreateUniteAsync(trimmed);
-                unitesMesureDb.Add(created);
-            }
-
-            unitesMesure = unitesMesureDb
-                .Select(u => u.Nom)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(n => n)
-                .ToList();
-
-            formUnite = unitesMesure
-                .First(u => string.Equals(u, trimmed, StringComparison.OrdinalIgnoreCase));
-
-            showNewUnite = false;
-            newUnite = string.Empty;
-            summaryMessage = string.Empty;
-            summaryIsError = false;
-        }
-        catch (ValidationException ex)
-        {
-            summaryIsError = true;
-            summaryMessage = ex.Message;
-        }
-        catch
-        {
-            summaryIsError = true;
-            summaryMessage = "Impossible de créer l'unité pour le moment.";
-        }
-        finally
-        {
-            isCreatingUnite = false;
-        }
+        formUnite = trimmed;
+        showNewUnite = false;
+        newUnite = string.Empty;
     }
 
     private void CancelNewUnite()
@@ -768,10 +679,10 @@
 
     private void ShowCreateForm()
     {
-        summaryMessage = string.Empty;
-        summaryIsError = false;
         isEditing = false;
         editingProduitId = null;
+        summaryMessage = null;
+        summaryIsError = false;
         activeTab = 0;
         ResetForm();
         showForm = true;
@@ -779,7 +690,7 @@
 
     private void ShowEditForm(Produit produit)
     {
-        summaryMessage = string.Empty;
+        summaryMessage = null;
         summaryIsError = false;
 
         isEditing = true;
@@ -787,20 +698,36 @@
         activeTab = 0;
         showForm = true;
 
-        formTypeProduit = GetTypeLabel(produit.TypeProduit);
+        formTypeProduit = produit.TypeProduit switch
+        {
+            TypeProduit.Produit => "Produit",
+            TypeProduit.Service => "Service",
+            _ => string.Empty
+        };
+
         formCategorie = produit.Categorie?.Nom ?? string.Empty;
-        formStatut = GetStatutLabel(produit.Statut);
-        formReference = produit.Reference;
-        formDesignation = produit.Designation;
+        formStatut = produit.Statut switch
+        {
+            StatutProduit.Actif => "Actif",
+            StatutProduit.Inactif => "Inactif",
+            StatutProduit.Discontinue => "Discontinué",
+            _ => "Actif"
+        };
+
+        formReference = produit.Reference ?? string.Empty;
+        formDesignation = produit.Designation ?? string.Empty;
         formMarque = produit.Marque ?? string.Empty;
-        formUnite = produit.UniteMesure?.Nom ?? string.Empty;
+        formUnite = produit.UniteMesure?.Nom ?? "Pièce";
+
         formPrixAchatHT = produit.PrixAchatHT;
         formPrixHT = produit.PrixVenteHT;
         formTauxTva = produit.TauxTva;
         formRemiseMax = produit.RemiseMax;
+
         formSuiviStock = produit.SuiviStock;
         formQuantiteStock = produit.QuantiteStock;
         formSeuilAlerte = produit.SeuilAlerte;
+
         formDescription = produit.Description ?? string.Empty;
         formNotes = produit.Notes ?? string.Empty;
 
@@ -808,6 +735,28 @@
         newCategorieProduit = string.Empty;
         showNewUnite = false;
         newUnite = string.Empty;
+    }
+
+    private async Task DeleteProduitAsync(int id)
+    {
+        isBusy = true;
+        summaryMessage = null;
+        summaryIsError = false;
+
+        try
+        {
+            await ProduitService.DeleteAsync(id);
+            await LoadPageDataAsync();
+        }
+        catch (Exception ex)
+        {
+            summaryIsError = true;
+            summaryMessage = ex.Message;
+        }
+        finally
+        {
+            isBusy = false;
+        }
     }
 
     private void HideForm()
@@ -821,101 +770,6 @@
         ApplyFilters();
     }
 
-    private void ShowDeleteConfirmation(Produit produit)
-    {
-        summaryMessage = string.Empty;
-        summaryIsError = false;
-        produitToDeleteId = produit.Id;
-        produitToDeleteName = produit.Designation;
-        showDeleteConfirmation = true;
-    }
-
-    private void HideDeleteConfirmation()
-    {
-        showDeleteConfirmation = false;
-        produitToDeleteId = null;
-        produitToDeleteName = string.Empty;
-    }
-
-    private async Task ConfirmDeleteProduitAsync()
-    {
-        if (isDeleting || produitToDeleteId is null)
-        {
-            return;
-        }
-
-        isDeleting = true;
-        summaryMessage = string.Empty;
-        summaryIsError = false;
-
-        try
-        {
-            await ProduitService.DeleteAsync(produitToDeleteId.Value);
-            await LoadPageDataAsync();
-
-            summaryIsError = false;
-            summaryMessage = "Produit supprimé avec succès.";
-            HideDeleteConfirmation();
-        }
-        catch (InvalidOperationException ex)
-        {
-            summaryIsError = true;
-            summaryMessage = ex.Message;
-        }
-        catch
-        {
-            summaryIsError = true;
-            summaryMessage = "Une erreur est survenue lors de la suppression du produit.";
-        }
-        finally
-        {
-            isDeleting = false;
-        }
-    }
-
-    private void ApplyFilters()
-    {
-        IEnumerable<Produit> query = allProduits;
-
-        if (!string.IsNullOrWhiteSpace(searchTerm))
-        {
-            var term = searchTerm.Trim();
-            query = query.Where(p =>
-                p.Reference.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                p.Designation.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrWhiteSpace(p.Marque) && p.Marque.Contains(term, StringComparison.OrdinalIgnoreCase)));
-        }
-
-        if (!string.IsNullOrWhiteSpace(filterType))
-        {
-            var type = filterType == "Service" ? TypeProduit.Service : TypeProduit.Produit;
-            query = query.Where(p => p.TypeProduit == type);
-        }
-
-        if (!string.IsNullOrWhiteSpace(filterCategorie))
-        {
-            query = query.Where(p => string.Equals(p.Categorie?.Nom, filterCategorie, StringComparison.OrdinalIgnoreCase));
-        }
-
-        if (!string.IsNullOrWhiteSpace(filterStatut) && TryParseStatut(filterStatut, out var statut))
-        {
-            query = query.Where(p => p.Statut == statut);
-        }
-
-        if (filterTva >= 0)
-        {
-            query = query.Where(p => p.TauxTva == filterTva);
-        }
-
-        filteredProduits = query
-            .OrderByDescending(p => p.DateCreation)
-            .ToList();
-
-        filteredCount = filteredProduits.Count;
-        currentStart = filteredCount == 0 ? 0 : 1;
-        currentEnd = filteredCount;
-    }
-
     private void ResetForm()
     {
         formTypeProduit = string.Empty;
@@ -924,7 +778,7 @@
         formReference = string.Empty;
         formDesignation = string.Empty;
         formMarque = string.Empty;
-        formUnite = string.Empty;
+        formUnite = "Pièce";
         formPrixAchatHT = 0;
         formPrixHT = 0;
         formTauxTva = 19;
@@ -934,196 +788,99 @@
         formSeuilAlerte = 0;
         formDescription = string.Empty;
         formNotes = string.Empty;
-        showNewCategorieProduit = false;
-        newCategorieProduit = string.Empty;
-        showNewUnite = false;
-        newUnite = string.Empty;
     }
 
-    private async Task SaveProduitAsync()
+    private async Task SaveProduit()
     {
-        if (isSaving)
+        if (isBusy)
         {
             return;
         }
 
-        summaryMessage = string.Empty;
+        isBusy = true;
+        summaryMessage = null;
         summaryIsError = false;
 
-        var produit = BuildProduitFromForm();
-        produit.CategorieProduitId = await ResolveSelectedCategoryIdAsync(formCategorie);
-        produit.UniteMesureId = await ResolveSelectedUniteIdAsync(formUnite);
-
-        var validationResults = new List<ValidationResult>();
-        var validationContext = new ValidationContext(produit);
-
-        if (!Validator.TryValidateObject(produit, validationContext, validationResults, validateAllProperties: true))
-        {
-            summaryIsError = true;
-            summaryMessage = validationResults[0].ErrorMessage ?? "Veuillez verifier les informations du formulaire.";
-            return;
-        }
-
-        isSaving = true;
         try
         {
+            var typeProduit = formTypeProduit switch
+            {
+                "Produit" => TypeProduit.Produit,
+                "Service" => TypeProduit.Service,
+                _ => TypeProduit.NonDefini
+            };
+
+            var statutProduit = formStatut switch
+            {
+                "Actif" => StatutProduit.Actif,
+                "Inactif" => StatutProduit.Inactif,
+                "Discontinué" => StatutProduit.Discontinue,
+                _ => StatutProduit.Actif
+            };
+
+            int? categorieProduitId = await ResolveCategorieProduitIdAsync(formCategorie);
+            int? uniteMesureId = await ResolveUniteMesureIdAsync(formUnite);
+
+            var produit = new Produit
+            {
+                Id = editingProduitId ?? 0,
+                TypeProduit = typeProduit,
+                Statut = statutProduit,
+                CategorieProduitId = categorieProduitId,
+                UniteMesureId = uniteMesureId,
+                Reference = (formReference ?? string.Empty).Trim(),
+                Designation = (formDesignation ?? string.Empty).Trim(),
+                Marque = IsService ? null : (string.IsNullOrWhiteSpace(formMarque) ? null : formMarque.Trim()),
+                PrixAchatHT = formPrixAchatHT,
+                PrixVenteHT = formPrixHT,
+                TauxTva = formTauxTva,
+                RemiseMax = formRemiseMax,
+                SuiviStock = formSuiviStock,
+                QuantiteStock = formQuantiteStock,
+                SeuilAlerte = formSeuilAlerte,
+                Description = string.IsNullOrWhiteSpace(formDescription) ? null : formDescription,
+                Notes = string.IsNullOrWhiteSpace(formNotes) ? null : formNotes
+            };
+
+            var validationResults = new List<ValidationResult>();
+            var validationContext = new ValidationContext(produit);
+            if (!Validator.TryValidateObject(produit, validationContext, validationResults, validateAllProperties: true))
+            {
+                summaryIsError = true;
+                summaryMessage = validationResults[0].ErrorMessage ?? "Veuillez vérifier les données du formulaire.";
+                return;
+            }
+
             if (isEditing && editingProduitId.HasValue)
             {
                 produit.Id = editingProduitId.Value;
                 await ProduitService.UpdateAsync(produit);
-                summaryMessage = "Produit mis a jour avec succes.";
+                summaryIsError = false;
+                summaryMessage = "Produit mis à jour avec succès.";
             }
             else
             {
                 await ProduitService.CreateAsync(produit);
+                summaryIsError = false;
                 summaryMessage = "Produit créé avec succès.";
             }
 
             await LoadPageDataAsync();
-
-            summaryIsError = false;
             HideForm();
-            ResetForm();
         }
         catch (ValidationException ex)
         {
             summaryIsError = true;
             summaryMessage = ex.Message;
         }
-        catch
+        catch (Exception ex)
         {
             summaryIsError = true;
-            summaryMessage = isEditing
-                ? "Une erreur est survenue lors de la mise a jour du produit."
-                : "Une erreur est survenue lors de la création du produit.";
+            summaryMessage = ex.Message;
         }
         finally
         {
-            isSaving = false;
+            isBusy = false;
         }
-    }
-
-    private Produit BuildProduitFromForm()
-    {
-        var typeProduit = formTypeProduit switch
-        {
-            "Produit" => TypeProduit.Produit,
-            "Service" => TypeProduit.Service,
-            _ => TypeProduit.NonDefini
-        };
-
-        var statut = TryParseStatut(formStatut, out var parsedStatut)
-            ? parsedStatut
-            : StatutProduit.Actif;
-
-        var isService = typeProduit == TypeProduit.Service;
-
-        return new Produit
-        {
-            TypeProduit = typeProduit,
-            Statut = statut,
-            CategorieProduitId = null,
-            Reference = (formReference ?? string.Empty).Trim(),
-            Designation = (formDesignation ?? string.Empty).Trim(),
-            Marque = isService ? null : NullIfWhiteSpace(formMarque),
-            UniteMesureId = null,
-            PrixAchatHT = formPrixAchatHT,
-            PrixVenteHT = formPrixHT,
-            TauxTva = formTauxTva,
-            RemiseMax = formRemiseMax,
-            SuiviStock = isService ? false : formSuiviStock,
-            QuantiteStock = isService || !formSuiviStock ? 0 : formQuantiteStock,
-            SeuilAlerte = isService || !formSuiviStock ? 0 : formSeuilAlerte,
-            Description = NullIfWhiteSpace(formDescription),
-            Notes = NullIfWhiteSpace(formNotes)
-        };
-    }
-
-    private async Task<int?> ResolveSelectedCategoryIdAsync(string? selectedCategoryName)
-    {
-        if (string.IsNullOrWhiteSpace(selectedCategoryName))
-        {
-            return null;
-        }
-
-        var existing = categoriesProduitDb
-            .FirstOrDefault(c => string.Equals(c.Nom, selectedCategoryName, StringComparison.OrdinalIgnoreCase));
-
-        if (existing is not null)
-        {
-            return existing.Id;
-        }
-
-        var created = await ProduitService.CreateCategorieAsync(selectedCategoryName);
-        categoriesProduitDb.Add(created);
-        categoriesProduit = categoriesProduitDb.Select(c => c.Nom).OrderBy(n => n).ToList();
-        return created.Id;
-    }
-
-    private async Task<int?> ResolveSelectedUniteIdAsync(string? selectedUniteName)
-    {
-        if (string.IsNullOrWhiteSpace(selectedUniteName))
-        {
-            return null;
-        }
-
-        var existing = unitesMesureDb
-            .FirstOrDefault(u => string.Equals(u.Nom, selectedUniteName, StringComparison.OrdinalIgnoreCase));
-
-        if (existing is not null)
-        {
-            return existing.Id;
-        }
-
-        var created = await ProduitService.CreateUniteAsync(selectedUniteName);
-        unitesMesureDb.Add(created);
-        unitesMesure = unitesMesureDb.Select(u => u.Nom).OrderBy(n => n).ToList();
-        return created.Id;
-    }
-
-    private static string? NullIfWhiteSpace(string? value)
-    {
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    }
-
-    private static bool TryParseStatut(string value, out StatutProduit statut)
-    {
-        var normalized = value.Trim() switch
-        {
-            "Discontinué" => "Discontinue",
-            _ => value.Trim()
-        };
-
-        return Enum.TryParse(normalized, true, out statut);
-    }
-
-    private static string GetStatutLabel(StatutProduit statut)
-    {
-        return statut switch
-        {
-            StatutProduit.Discontinue => "Discontinué",
-            _ => statut.ToString()
-        };
-    }
-
-    private static string GetTypeLabel(TypeProduit typeProduit)
-    {
-        return typeProduit switch
-        {
-            TypeProduit.Produit => "Produit",
-            TypeProduit.Service => "Service",
-            _ => "-"
-        };
-    }
-
-    private static string GetStatusBadgeClass(StatutProduit statut)
-    {
-        return statut switch
-        {
-            StatutProduit.Actif => "bg-success-subtle text-success-emphasis",
-            StatutProduit.Inactif => "bg-secondary-subtle text-secondary-emphasis",
-            StatutProduit.Discontinue => "bg-warning-subtle text-warning-emphasis",
-            _ => "bg-light text-dark"
-        };
     }
 }

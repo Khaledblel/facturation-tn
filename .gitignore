@@ -483,3 +483,6 @@ $RECYCLE.BIN/
 FacturationTN/FacturationTN.db
 FacturationTN/FacturationTN.db-shm
 FacturationTN/FacturationTN.db-wal
+
+# Local dotnet build output folders (do not commit)
+FacturationTN/_build_check*/

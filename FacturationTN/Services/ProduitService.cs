@@ -32,16 +32,18 @@ public class ProduitService(AppDbContext dbContext) : IProduitService
 
     public async Task<Produit> CreateAsync(Produit produit)
     {
+        produit.DateCreation = DateTime.UtcNow;
+        produit.DateModification = null;
+
         try
         {
             _dbContext.Produits.Add(produit);
             await _dbContext.SaveChangesAsync();
-
             return produit;
         }
         catch (DbUpdateException ex) when (IsReferenceUniqueViolation(ex))
         {
-            throw new ValidationException("Cette reference existe deja. Veuillez en utiliser une autre.");
+            throw new ValidationException("Cette reference produit existe deja. Veuillez en utiliser une autre.");
         }
     }
 
@@ -75,7 +77,7 @@ public class ProduitService(AppDbContext dbContext) : IProduitService
         }
         catch (DbUpdateException ex) when (IsReferenceUniqueViolation(ex))
         {
-            throw new ValidationException("Cette reference existe deja. Veuillez en utiliser une autre.");
+            throw new ValidationException("Cette reference produit existe deja. Veuillez en utiliser une autre.");
         }
     }
 
@@ -94,7 +96,7 @@ public class ProduitService(AppDbContext dbContext) : IProduitService
         }
         catch (DbUpdateException ex) when (IsDeleteConstraintViolation(ex))
         {
-            throw new InvalidOperationException("Impossible de supprimer ce produit car il est lie a des factures.");
+            throw new InvalidOperationException("Impossible de supprimer ce produit car il est utilise sur des lignes de facture.");
         }
     }
 
@@ -122,7 +124,7 @@ public class ProduitService(AppDbContext dbContext) : IProduitService
                 (p.Marque != null && p.Marque.Contains(term)));
         }
 
-        if (!string.IsNullOrWhiteSpace(type) && Enum.TryParse<TypeProduit>(type, true, out var typeValue))
+        if (!string.IsNullOrWhiteSpace(type) && Enum.TryParse<TypeProduit>(type, true, out var typeValue) && typeValue != TypeProduit.NonDefini)
         {
             query = query.Where(p => p.TypeProduit == typeValue);
         }
@@ -132,18 +134,14 @@ public class ProduitService(AppDbContext dbContext) : IProduitService
             query = query.Where(p => p.Categorie != null && p.Categorie.Nom == categorie);
         }
 
-        if (!string.IsNullOrWhiteSpace(statut))
+        if (!string.IsNullOrWhiteSpace(statut) && Enum.TryParse<StatutProduit>(statut, true, out var statutValue))
         {
-            var normalizedStatut = statut.Trim().Replace("é", "e", StringComparison.OrdinalIgnoreCase);
-            if (Enum.TryParse<StatutProduit>(normalizedStatut, true, out var statutValue))
-            {
-                query = query.Where(p => p.Statut == statutValue);
-            }
+            query = query.Where(p => p.Statut == statutValue);
         }
 
-        if (tauxTva.HasValue)
+        if (tauxTva is int tva)
         {
-            query = query.Where(p => p.TauxTva == tauxTva.Value);
+            query = query.Where(p => p.TauxTva == tva);
         }
 
         var total = await query.CountAsync();
@@ -177,11 +175,6 @@ public class ProduitService(AppDbContext dbContext) : IProduitService
             throw new ValidationException("Le nom de la categorie est obligatoire.");
         }
 
-        if (normalizedName.Length > 30)
-        {
-            throw new ValidationException("Le nom de la categorie ne doit pas dépasser 30 caractères.");
-        }
-
         var existing = await _dbContext.CategoriesProduit
             .FirstOrDefaultAsync(c => c.Nom.ToLower() == normalizedName.ToLower());
 
@@ -213,11 +206,6 @@ public class ProduitService(AppDbContext dbContext) : IProduitService
             throw new ValidationException("Le nom de l'unite est obligatoire.");
         }
 
-        if (normalizedName.Length > 20)
-        {
-            throw new ValidationException("Le nom de l'unite ne doit pas dépasser 20 caractères.");
-        }
-
         var existing = await _dbContext.UnitesMesure
             .FirstOrDefaultAsync(u => u.Nom.ToLower() == normalizedName.ToLower());
 
@@ -243,8 +231,6 @@ public class ProduitService(AppDbContext dbContext) : IProduitService
     private static bool IsDeleteConstraintViolation(DbUpdateException ex)
     {
         var message = ex.InnerException?.Message ?? ex.Message;
-        return message.Contains("FOREIGN KEY constraint failed", StringComparison.OrdinalIgnoreCase)
-               || message.Contains("constraint", StringComparison.OrdinalIgnoreCase)
-               && message.Contains("Produit", StringComparison.OrdinalIgnoreCase);
+        return message.Contains("FOREIGN KEY constraint failed", StringComparison.OrdinalIgnoreCase);
     }
 }
