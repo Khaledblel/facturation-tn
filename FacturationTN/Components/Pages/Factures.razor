@@ -114,13 +114,11 @@
                                     <a class="btn btn-sm btn-outline-info" href="@($"/factures/editer/{facture.Id}")" title="Modifier">
                                         Modifier
                                     </a>
+
                                     @if (facture.Statut == StatutFacture.Brouillon)
                                     {
                                         <button class="btn btn-sm btn-outline-success" @onclick="() => ValiderAsync(facture.Id)" disabled="@isBusy">
                                             Valider
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-warning" @onclick="() => AnnulerAsync(facture.Id)" disabled="@isBusy">
-                                            Annuler
                                         </button>
                                         <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(facture.Id)" disabled="@isBusy">
                                             Supprimer
