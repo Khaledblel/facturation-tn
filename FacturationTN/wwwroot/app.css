@@ -86,3 +86,28 @@ h1:focus {
 .chart-placeholder-lg {
     min-height: 220px;
 }
+
+.card-header {
+    border-bottom: 1px solid #e8eaed;
+    letter-spacing: .03em;
+}
+
+.card-body table {
+    font-size: .95rem;
+}
+
+.card .text-muted.small {
+    letter-spacing: .05em;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+.kpi-card .fs-4 {
+    color: #212529;
+}

@@ -56,6 +56,85 @@
     </div>
 </div>
 
+<div class="row g-3 mb-4">
+    <div class="col-xl col-md-4 col-sm-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase fw-semibold">Factures validées</div>
+                <div class="fs-4 fw-bold text-primary mt-1">@validatedFactures <span class="fs-6 fw-normal">factures</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl col-md-4 col-sm-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase fw-semibold">Factures payées</div>
+                <div class="fs-4 fw-bold text-success mt-1">@paidFactures <span class="fs-6 fw-normal">factures</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl col-md-4 col-sm-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase fw-semibold">Clients actifs</div>
+                <div class="fs-4 fw-bold text-warning mt-1">@activeClients <span class="fs-6 fw-normal">clients</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl col-md-4 col-sm-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase fw-semibold">Produits vendus</div>
+                <div class="fs-4 fw-bold text-danger mt-1">@soldProducts <span class="fs-6 fw-normal">produits</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ═══════════════════════════════════════════════════════════════ *@
+@* RAPIDE : MOIS EN COURS                                        *@
+@* ═══════════════════════════════════════════════════════════════ *@
+<div class="row g-3 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">@currentMonthLabel</div>
+            <div class="card-body text-center">
+                <div class="text-muted small text-uppercase">Factures ce mois</div>
+                <div class="fs-4 fw-bold mt-1">@monthFactures</div>
+                <div class="text-muted small text-uppercase mt-3">CA HT</div>
+                <div class="fs-5 fw-bold text-success">@monthHt.ToString("N3") TND</div>
+                <div class="text-muted small text-uppercase mt-2">CA TTC</div>
+                <div class="fs-5 fw-bold text-primary">@monthTtc.ToString("N3") TND</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-9 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white fw-semibold">Synthèse des statuts</div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-sm-4 mb-2">
+                        <div class="text-muted small">Validées</div>
+                        <div class="fs-5 fw-bold text-primary">@validatedFactures</div>
+                    </div>
+                    <div class="col-sm-4 mb-2">
+                        <div class="text-muted small">Payées</div>
+                        <div class="fs-5 fw-bold text-success">@paidFactures</div>
+                    </div>
+                    <div class="col-sm-4 mb-2">
+                        <div class="text-muted small">Clients actifs</div>
+                        <div class="fs-5 fw-bold text-warning">@activeClients</div>
+                    </div>
+                </div>
+                <div class="progress mt-3" style="height:10px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width:@(totalFactures == 0 ? 0 : (int)Math.Min(100, (decimal)paidFactures * 100 / totalFactures))%" aria-valuenow="@(totalFactures == 0 ? 0 : (int)Math.Min(100, (decimal)paidFactures * 100 / totalFactures))" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="text-end small text-muted mt-1">% de factures payées</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @* ═══════════════════════════════════════════════════════════════ *@
 @* TABLEAU DE BORD FISCAL                                         *@
 @* ═══════════════════════════════════════════════════════════════ *@
@@ -279,6 +358,16 @@
     private List<ClientCA> caByClient = new();
     private List<ProduitCA> caByProduit = new();
 
+    // ── Facture status & extra KPIs ──
+    private int validatedFactures;
+    private int paidFactures;
+    private int activeClients;
+    private int soldProducts;
+    private int monthFactures;
+    private decimal monthHt;
+    private decimal monthTtc;
+    private string currentMonthLabel = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadAndComputeAsync();
@@ -286,7 +375,7 @@
 
     private async Task LoadAndComputeAsync()
     {
-        var allFactures = await LoadAllFacturesAsync();
+        var allFactures = await LoadAllFacturesAsync() ?? new List<Facture>();
 
         // On analyse uniquement les factures "commerciales" (validées/paiées).
         var salesFactures = allFactures
@@ -299,9 +388,22 @@
         totalTimbre = salesFactures.Sum(f => f.TimbreFiscal);
         totalTtc = salesFactures.Sum(f => f.TotalTTC);
 
+        validatedFactures = salesFactures.Count(f => f.Statut == StatutFacture.Validee);
+        paidFactures = salesFactures.Count(f => f.Statut == StatutFacture.Payee);
+        activeClients = salesFactures.Select(f => f.ClientId).Distinct().Count();
+
+        var allLines = salesFactures.SelectMany(f => f.Lignes).ToList();
+        soldProducts = allLines.Select(l => l.ProduitId).Distinct().Count();
+
+        var now = DateTime.Now;
+        currentMonthLabel = now.ToString("MMMM yyyy");
+        var monthInvoices = salesFactures.Where(f => f.DateFacture.Year == now.Year && f.DateFacture.Month == now.Month).ToList();
+        monthFactures = monthInvoices.Count;
+        monthHt = monthInvoices.Sum(f => f.TotalHT);
+        monthTtc = monthInvoices.Sum(f => f.TotalTTC);
+
         // TVA par taux (tableau fixe 0/7/13/19)
         var tvaRates = new[] { 0, 7, 13, 19 };
-        var allLines = salesFactures.SelectMany(f => f.Lignes).ToList();
 
         tvaByRate = tvaRates
             .Select(rate =>
@@ -317,6 +419,7 @@
 
         timbreUnitaire = salesFactures
             .Select(f => f.TimbreFiscal)
+            .Where(x => x > 0)
             .Distinct()
             .OrderBy(x => x)
             .FirstOrDefault();
