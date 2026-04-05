@@ -1,0 +1,266 @@
+@page "/factures/{Id:int}"
+@rendermode InteractiveServer
+@using FacturationTN.Models
+@using FacturationTN.Models.Enums
+@using FacturationTN.Services.Interfaces
+@inject IFactureService FactureService
+@inject IParametresService ParametresService
+
+<PageTitle>Fiche facture</PageTitle>
+
+<div class="facture-details-shell">
+@if (isLoading)
+{
+    <div class="card border-0 shadow-sm state-card">
+        <div class="card-body py-5 text-center text-muted">
+            Chargement de la fiche facture...
+        </div>
+    </div>
+}
+else if (facture is null)
+{
+    <div class="card border-0 shadow-sm state-card">
+        <div class="card-body py-5 text-center">
+            <h1 class="h4 mb-3">Facture introuvable</h1>
+            <p class="text-muted mb-4">La facture demandee n'existe pas ou a ete supprimee.</p>
+            <a class="btn btn-outline-primary" href="/factures">Retour a la liste</a>
+        </div>
+    </div>
+}
+else
+{
+    <section class="hero-panel mb-4">
+        <div class="hero-inner">
+            <div>
+                <p class="eyebrow mb-2">Fiche facture</p>
+                <h1 class="mb-2 details-title">@facture.NumeroFacture</h1>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <span class="badge @GetStatusBadgeClass(facture.Statut)">@GetStatutLabel(facture.Statut)</span>
+                    <span class="pill-soft">Date: @facture.DateFacture.ToString("dd/MM/yyyy")</span>
+                </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
+                <a class="btn btn-outline-secondary details-action-btn" href="/factures">Retour</a>
+                <a class="btn btn-primary details-action-btn" href="@($"/factures/{Id}/imprimer")" target="_blank" rel="noopener">Imprimer</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-xl-6">
+            <div class="card border-0 shadow-sm details-card h-100">
+                <div class="card-header bg-white fw-semibold section-header">Societe</div>
+                <div class="card-body">
+                    <div class="details-label">Raison sociale</div>
+                    <div class="details-value mb-2">@DisplayOrDash(parametres?.RaisonSociale)</div>
+
+                    <div class="details-label">Matricule fiscale</div>
+                    <div class="details-value mb-2">@DisplayOrDash(parametres?.MatriculeFiscale)</div>
+
+                    <div class="details-label">Adresse</div>
+                    <div class="details-value details-break mb-2">@DisplayOrDash(parametres?.Adresse)</div>
+
+                    <div class="details-label">Contact</div>
+                    <div class="details-value">@BuildContactLine(parametres)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-6">
+            <div class="card border-0 shadow-sm details-card h-100">
+                <div class="card-header bg-white fw-semibold section-header">Client facture</div>
+                <div class="card-body">
+                    <div class="details-label">Nom / Raison sociale</div>
+                    <div class="details-value mb-2">@DisplayOrDash(facture.Client?.Nom)</div>
+
+                    <div class="details-label">Matricule fiscale</div>
+                    <div class="details-value mb-2">@DisplayOrDash(facture.Client?.MatriculeFiscale)</div>
+
+                    <div class="details-label">Adresse</div>
+                    <div class="details-value details-break mb-2">@FormatAddress(facture.Client)</div>
+
+                    <div class="details-label">Contact</div>
+                    <div class="details-value">@BuildClientContactLine(facture.Client)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm details-card mb-3">
+        <div class="card-header bg-white fw-semibold section-header">Lignes de facture</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Désignation</th>
+                            <th class="text-center" style="width: 90px;">Qté</th>
+                            <th class="text-end" style="width: 140px;">PU HT</th>
+                            <th class="text-center" style="width: 90px;">TVA</th>
+                            <th class="text-end" style="width: 140px;">Montant HT</th>
+                            <th class="text-end" style="width: 140px;">Montant TTC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (facture.Lignes.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">Aucune ligne disponible.</td>
+                            </tr>
+                        }
+                        @foreach (var ligne in facture.Lignes.OrderBy(l => l.Id))
+                        {
+                            <tr>
+                                <td>@ligne.Designation</td>
+                                <td class="text-center">@ligne.Quantite</td>
+                                <td class="text-end">@ligne.PrixUnitaireHT.ToString("N3") TND</td>
+                                <td class="text-center">@ligne.TauxTva %</td>
+                                <td class="text-end">@ligne.MontantHT.ToString("N3") TND</td>
+                                <td class="text-end fw-semibold">@ligne.MontantTTC.ToString("N3") TND</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-end">
+        <div class="col-12 col-lg-5">
+            <div class="card border-0 shadow-sm details-card">
+                <div class="card-header bg-white fw-semibold section-header">Totaux</div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="ps-3">Total HT</td>
+                                <td class="text-end pe-3 fw-semibold">@facture.TotalHT.ToString("N3") TND</td>
+                            </tr>
+                            <tr>
+                                <td class="ps-3">Total TVA</td>
+                                <td class="text-end pe-3 fw-semibold">@facture.TotalTVA.ToString("N3") TND</td>
+                            </tr>
+                            <tr>
+                                <td class="ps-3">Timbre fiscal</td>
+                                <td class="text-end pe-3">@facture.TimbreFiscal.ToString("N3") TND</td>
+                            </tr>
+                            <tr class="table-dark">
+                                <td class="ps-3 fw-bold">TOTAL TTC</td>
+                                <td class="text-end pe-3 fw-bold fs-5">@facture.TotalTTC.ToString("N3") TND</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Facture? facture;
+    private FacturationTN.Models.Parametres? parametres;
+    private bool isLoading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        facture = await FactureService.GetByIdAsync(Id);
+
+        if (facture is not null)
+        {
+            parametres = await ParametresService.GetAsync();
+        }
+
+        isLoading = false;
+    }
+
+    private static string DisplayOrDash(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? "-" : value;
+    }
+
+    private static string FormatAddress(Client? client)
+    {
+        if (client is null)
+        {
+            return "-";
+        }
+
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(client.Adresse))
+        {
+            parts.Add(client.Adresse);
+        }
+
+        var cityLine = string.Join(" ", new[] { client.CodePostal, client.Ville }.Where(v => !string.IsNullOrWhiteSpace(v)));
+        if (!string.IsNullOrWhiteSpace(cityLine))
+        {
+            parts.Add(cityLine);
+        }
+
+        var regionLine = string.Join(" - ", new[] { client.Gouvernorat, client.Pays }.Where(v => !string.IsNullOrWhiteSpace(v)));
+        if (!string.IsNullOrWhiteSpace(regionLine))
+        {
+            parts.Add(regionLine);
+        }
+
+        return parts.Count == 0 ? "-" : string.Join(", ", parts);
+    }
+
+    private static string BuildContactLine(FacturationTN.Models.Parametres? p)
+    {
+        if (p is null)
+        {
+            return "-";
+        }
+
+        var parts = new[] { p.Telephone, p.Email }
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .ToList();
+
+        return parts.Count == 0 ? "-" : string.Join(" | ", parts);
+    }
+
+    private static string BuildClientContactLine(Client? c)
+    {
+        if (c is null)
+        {
+            return "-";
+        }
+
+        var parts = new[] { c.Telephone, c.Email }
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .ToList();
+
+        return parts.Count == 0 ? "-" : string.Join(" | ", parts);
+    }
+
+    private static string GetStatutLabel(StatutFacture statut)
+    {
+        return statut switch
+        {
+            StatutFacture.Brouillon => "Brouillon",
+            StatutFacture.Validee => "Validée",
+            StatutFacture.Payee => "Payée",
+            StatutFacture.Annulee => "Annulée",
+            _ => "-"
+        };
+    }
+
+    private static string GetStatusBadgeClass(StatutFacture statut)
+    {
+        return statut switch
+        {
+            StatutFacture.Brouillon => "bg-secondary-subtle text-secondary-emphasis border",
+            StatutFacture.Validee => "bg-info-subtle text-info-emphasis border",
+            StatutFacture.Payee => "bg-success-subtle text-success-emphasis border",
+            StatutFacture.Annulee => "bg-danger-subtle text-danger-emphasis border",
+            _ => "bg-light text-dark border"
+        };
+    }
+}

@@ -68,76 +68,105 @@
 
 @* ── Invoice Table ────────────────────────────────────────────── *@
 <div class="card border-0 shadow-sm">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>N° Facture</th>
-                        <th>Date</th>
-                        <th>Client</th>
-                        <th class="text-end">Total HT</th>
-                        <th class="text-end">TVA</th>
-                        <th class="text-end">Timbre</th>
-                        <th class="text-end">Total TTC</th>
-                        <th class="text-center" style="width: 130px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (filteredCount == 0)
-                    {
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-5">
-                                @if (!string.IsNullOrEmpty(searchTerm) || dateFrom.HasValue || dateTo.HasValue || !string.IsNullOrEmpty(filterClient))
-                                {
-                                    <span>Aucune facture ne correspond aux critères de recherche.</span>
-                                }
-                                else
-                                {
-                                    <span>Aucune facture enregistrée. Cliquez sur <strong>Nouvelle facture</strong> pour commencer.</span>
-                                }
-                            </td>
-                        </tr>
-                    }
-                    @foreach (var facture in filteredFactures)
-                    {
-                        <tr>
-                            <td>@facture.NumeroFacture</td>
-                            <td>@facture.DateFacture.ToString("dd/MM/yyyy")</td>
-                            <td>@(facture.Client?.Nom ?? "-")</td>
-                            <td class="text-end">@facture.TotalHT.ToString("N3") TND</td>
-                            <td class="text-end">@facture.TotalTVA.ToString("N3") TND</td>
-                            <td class="text-end">@facture.TimbreFiscal.ToString("N3") TND</td>
-                            <td class="text-end">@facture.TotalTTC.ToString("N3") TND</td>
-                            <td class="text-center">
-                                <div class="d-inline-flex gap-1">
-                                    <a class="btn btn-sm btn-outline-info" href="@($"/factures/editer/{facture.Id}")" title="Modifier">
-                                        Modifier
-                                    </a>
-
-                                    @if (facture.Statut == StatutFacture.Brouillon)
-                                    {
-                                        <button class="btn btn-sm btn-outline-success" @onclick="() => ValiderAsync(facture.Id)" disabled="@isBusy">
-                                            Valider
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(facture.Id)" disabled="@isBusy">
-                                            Supprimer
-                                        </button>
-                                    }
-                                    else if (facture.Statut == StatutFacture.Validee)
-                                    {
-                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => MarquerPayeeAsync(facture.Id)" disabled="@isBusy">
-                                            Marquer payée
-                                        </button>
-                                    }
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    @if (filteredCount == 0)
+    {
+        <div class="card-body text-center text-muted py-5">
+            @if (!string.IsNullOrEmpty(searchTerm) || dateFrom.HasValue || dateTo.HasValue || !string.IsNullOrEmpty(filterClient))
+            {
+                <span>Aucune facture ne correspond aux critères de recherche.</span>
+            }
+            else
+            {
+                <span>Aucune facture enregistrée. Cliquez sur <strong>Nouvelle facture</strong> pour commencer.</span>
+            }
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="card-body">
+            @for (var index = 0; index < statusSections.Count; index++)
+            {
+                var group = statusSections[index];
+                var sectionId = group.Title.ToLowerInvariant().Replace(" ", "-");
+
+                <section class="@(index > 0 ? "pt-4 mt-4 border-top" : string.Empty)" id="@sectionId">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">@group.Title</h5>
+                        <span class="badge text-bg-light border">@group.Items.Count</span>
+                    </div>
+
+                    @if (group.Items.Count == 0)
+                    {
+                        <div class="text-muted small py-3">Aucune facture dans cette section.</div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>N° Facture</th>
+                                        <th>Date</th>
+                                        <th>Client</th>
+                                        <th class="text-end">Total HT</th>
+                                        <th class="text-end">TVA</th>
+                                        <th class="text-end">Timbre</th>
+                                        <th class="text-end">Total TTC</th>
+                                        <th class="text-center" style="width: 130px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var facture in group.Items)
+                                    {
+                                        <tr>
+                                            <td>@facture.NumeroFacture</td>
+                                            <td>@facture.DateFacture.ToString("dd/MM/yyyy")</td>
+                                            <td>@(facture.Client?.Nom ?? "-")</td>
+                                            <td class="text-end">@facture.TotalHT.ToString("N3") TND</td>
+                                            <td class="text-end">@facture.TotalTVA.ToString("N3") TND</td>
+                                            <td class="text-end">@facture.TimbreFiscal.ToString("N3") TND</td>
+                                            <td class="text-end">@facture.TotalTTC.ToString("N3") TND</td>
+                                            <td class="text-center">
+                                                <div class="d-inline-flex gap-1">
+                                                    <a class="btn btn-sm btn-outline-secondary" href="@($"/factures/{facture.Id}")" title="Voir fiche">
+                                                        Voir fiche
+                                                    </a>
+
+                                                    @if (facture.Statut != StatutFacture.Payee)
+                                                    {
+                                                        <a class="btn btn-sm btn-outline-info" href="@($"/factures/editer/{facture.Id}")" title="Modifier">
+                                                            Modifier
+                                                        </a>
+                                                    }
+
+                                                    @if (facture.Statut == StatutFacture.Brouillon)
+                                                    {
+                                                        <button class="btn btn-sm btn-outline-success" @onclick="() => ValiderAsync(facture.Id)" disabled="@isBusy">
+                                                            Valider
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => ShowDeleteConfirmation(facture)" disabled="@isBusy">
+                                                            Supprimer
+                                                        </button>
+                                                    }
+                                                    else if (facture.Statut == StatutFacture.Validee)
+                                                    {
+                                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => MarquerPayeeAsync(facture.Id)" disabled="@isBusy">
+                                                            Marquer payée
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </section>
+            }
+        </div>
+    }
+
     @* ── Pagination ────────────────────────────────────────────── *@
     <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
         <span class="text-muted small">Affichage @currentStart–@currentEnd sur @filteredCount résultats</span>
@@ -150,6 +179,36 @@
         </nav>
     </div>
 </div>
+
+@* ── Delete Confirmation Modal ──────────────────────────────── *@
+@if (showDeleteConfirmation)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title">Supprimer la facture</h5>
+                    <button type="button" class="btn-close" @onclick="HideDeleteConfirmation"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2 small text-uppercase fw-semibold text-danger-emphasis">Action irreversible</p>
+                    <p class="mb-0">
+                        Voulez-vous vraiment supprimer la facture
+                        <strong>@factureToDeleteNumero</strong> ?
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" @onclick="HideDeleteConfirmation" disabled="@isBusy">
+                        Annuler
+                    </button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteFactureAsync" disabled="@isBusy">
+                        @(isBusy ? "Suppression..." : "Supprimer")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     private string? summaryMessage;
@@ -169,6 +228,12 @@
     private int filteredCount = 0;
     private int currentStart = 0;
     private int currentEnd = 0;
+    private List<FactureSection> statusSections = [];
+
+    // ── Delete confirmation state ──
+    private bool showDeleteConfirmation;
+    private int? factureToDeleteId;
+    private string factureToDeleteNumero = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -254,15 +319,58 @@
             .ThenByDescending(f => f.Id)
             .ToList();
 
+        BuildStatusSections();
+
         filteredCount = filteredFactures.Count;
         currentStart = filteredCount == 0 ? 0 : 1;
         currentEnd = filteredCount;
+    }
+
+    private void BuildStatusSections()
+    {
+        statusSections =
+        [
+            new FactureSection("Factures en brouillon", filteredFactures.Where(f => f.Statut == StatutFacture.Brouillon).ToList()),
+            new FactureSection("Factures validées", filteredFactures.Where(f => f.Statut == StatutFacture.Validee).ToList()),
+            new FactureSection("Factures payées", filteredFactures.Where(f => f.Statut == StatutFacture.Payee).ToList())
+        ];
     }
 
     private void ClearSearch()
     {
         searchTerm = string.Empty;
         ApplyFilters();
+    }
+
+    private void ShowDeleteConfirmation(Facture facture)
+    {
+        summaryMessage = null;
+        summaryIsError = false;
+        factureToDeleteId = facture.Id;
+        factureToDeleteNumero = facture.NumeroFacture;
+        showDeleteConfirmation = true;
+    }
+
+    private void HideDeleteConfirmation()
+    {
+        showDeleteConfirmation = false;
+        factureToDeleteId = null;
+        factureToDeleteNumero = string.Empty;
+    }
+
+    private async Task ConfirmDeleteFactureAsync()
+    {
+        if (factureToDeleteId is null || isBusy)
+        {
+            return;
+        }
+
+        await DeleteAsync(factureToDeleteId.Value);
+
+        if (!summaryIsError)
+        {
+            HideDeleteConfirmation();
+        }
     }
 
     private async Task ValiderAsync(int id)
@@ -352,4 +460,6 @@
             isBusy = false;
         }
     }
+
+    private sealed record FactureSection(string Title, List<Facture> Items);
 }

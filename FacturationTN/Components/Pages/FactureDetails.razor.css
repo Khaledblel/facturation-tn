@@ -1,0 +1,84 @@
+.facture-details-shell {
+    max-width: 1220px;
+    margin: 0 auto;
+}
+
+.hero-panel {
+    border-radius: 1rem;
+    padding: 1.1rem;
+    background: linear-gradient(120deg, #f8fafc 0%, #eef6ff 100%);
+    border: 1px solid #e8edf3;
+}
+
+.hero-inner {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.eyebrow {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    color: #5d6b7a;
+    font-weight: 600;
+}
+
+.details-title {
+    line-height: 1.1;
+    font-size: clamp(1.45rem, 2.4vw, 2rem);
+}
+
+.pill-soft {
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.06);
+    font-size: 0.78rem;
+    color: #334155;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.details-action-btn {
+    min-width: 110px;
+}
+
+.details-card {
+    border-radius: 0.9rem;
+    overflow: hidden;
+}
+
+.section-header {
+    font-size: 0.92rem;
+    letter-spacing: 0.02em;
+}
+
+.details-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7280;
+    margin-bottom: 0.1rem;
+}
+
+.details-value {
+    font-size: 0.96rem;
+    color: #111827;
+}
+
+.details-break {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+@media print {
+    .btn,
+    .hero-panel .details-action-btn {
+        display: none !important;
+    }
+
+    .facture-details-shell {
+        max-width: none;
+    }
+}

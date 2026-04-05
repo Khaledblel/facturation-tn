@@ -1,6 +1,7 @@
 @page "/parametres"
 @rendermode InteractiveServer
 
+@using System.ComponentModel.DataAnnotations
 @using FacturationTN.Services.Interfaces
 @inject IParametresService ParametresService
 
@@ -120,27 +121,32 @@
                     <div class="col-md-6">
                         <label class="form-label">Raison sociale <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" placeholder="Nom de votre entreprise"
+                               maxlength="50"
                                @bind="entrepriseNom" />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Matricule fiscale <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" placeholder="0000000/X/X/X000"
-                               @bind="entrepriseMatricule" />
+                           <input type="text" class="form-control" placeholder="0000000/X/X/X000" maxlength="16"
+                               value="@entrepriseMatricule"
+                               @oninput="OnEntrepriseMatriculeInput" />
                         <div class="form-text">Format tunisien : 7 chiffres / lettre / lettre / lettre + 3 chiffres</div>
                     </div>
                     <div class="col-md-12">
                         <label class="form-label">Adresse <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" placeholder="Rue, ville, code postal"
+                               maxlength="50"
                                @bind="entrepriseAdresse" />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Téléphone</label>
                         <input type="tel" class="form-control" placeholder="+216 XX XXX XXX"
+                               maxlength="20"
                                @bind="entrepriseTel" />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Email</label>
                         <input type="email" class="form-control" placeholder="contact@entreprise.tn"
+                               maxlength="50"
                                @bind="entrepriseEmail" />
                     </div>
                 </div>
@@ -151,6 +157,12 @@
                     <div class="alert alert-success alert-dismissible fade show py-2 small" role="alert">
                         Informations de l'entreprise mises à jour avec succès.
                         <button type="button" class="btn-close btn-close-sm" @onclick="() => entrepriseSaved = false"></button>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(entrepriseErrorMessage))
+                {
+                    <div class="alert alert-danger py-2 small" role="alert">
+                        @entrepriseErrorMessage
                     </div>
                 }
                 <button class="btn btn-primary btn-sm" @onclick="SaveEntreprise">Enregistrer</button>
@@ -171,6 +183,8 @@
     private string entrepriseTel = string.Empty;
     private string entrepriseEmail = string.Empty;
     private bool entrepriseSaved = false;
+    private string? entrepriseErrorMessage;
+    private const string MatriculePattern = @"^\d{7}/[A-Z]/[A-Z]/[A-Z]\d{3}$";
 
     // ── Logo ──
     private string? logoPreviewUrl;
@@ -249,13 +263,31 @@
 
     private async Task SaveEntreprise()
     {
+        entrepriseSaved = false;
+        entrepriseErrorMessage = null;
+
         var p = await ParametresService.GetAsync();
 
-        p.RaisonSociale = entrepriseNom;
-        p.MatriculeFiscale = entrepriseMatricule;
-        p.Adresse = entrepriseAdresse;
+        p.RaisonSociale = (entrepriseNom ?? string.Empty).Trim();
+        p.MatriculeFiscale = (entrepriseMatricule ?? string.Empty).Trim().ToUpperInvariant();
+        p.Adresse = (entrepriseAdresse ?? string.Empty).Trim();
         p.Telephone = string.IsNullOrWhiteSpace(entrepriseTel) ? null : entrepriseTel;
         p.Email = string.IsNullOrWhiteSpace(entrepriseEmail) ? null : entrepriseEmail;
+
+        var validationResults = new List<ValidationResult>();
+        var validationContext = new ValidationContext(p);
+
+        if (!Validator.TryValidateObject(p, validationContext, validationResults, validateAllProperties: true))
+        {
+            entrepriseErrorMessage = validationResults[0].ErrorMessage ?? "Veuillez verifier les informations du formulaire.";
+            return;
+        }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(p.MatriculeFiscale, MatriculePattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+        {
+            entrepriseErrorMessage = "Format matricule fiscale invalide. Exemple: 0000000/X/X/X000";
+            return;
+        }
 
         if (!string.IsNullOrWhiteSpace(logoPreviewUrl))
         {
@@ -271,6 +303,52 @@
 
         await ParametresService.UpdateAsync(p);
         entrepriseSaved = true;
+    }
+
+    private void OnEntrepriseMatriculeInput(ChangeEventArgs e)
+    {
+        entrepriseMatricule = FormatMatriculeFiscale(e.Value?.ToString());
+    }
+
+    private static string FormatMatriculeFiscale(string? rawValue)
+    {
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            return string.Empty;
+        }
+
+        var compact = new string(rawValue
+            .Where(char.IsLetterOrDigit)
+            .Select(char.ToUpperInvariant)
+            .Take(13)
+            .ToArray());
+
+        if (compact.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        var parts = new List<string>
+        {
+            compact[..Math.Min(7, compact.Length)]
+        };
+
+        if (compact.Length > 7)
+        {
+            parts.Add(compact[7].ToString());
+        }
+
+        if (compact.Length > 8)
+        {
+            parts.Add(compact[8].ToString());
+        }
+
+        if (compact.Length > 9)
+        {
+            parts.Add(compact[9..Math.Min(13, compact.Length)]);
+        }
+
+        return string.Join("/", parts);
     }
 
     private static (string base64, string contentType) ParseDataUrl(string dataUrl)

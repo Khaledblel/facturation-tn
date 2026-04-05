@@ -1,0 +1,206 @@
+@page "/factures/{Id:int}/imprimer"
+@using FacturationTN.Components.Layout
+@layout PrintLayout
+
+@using FacturationTN.Models
+@using FacturationTN.Models.Enums
+@using FacturationTN.Services.Interfaces
+@inject IFactureService FactureService
+@inject IParametresService ParametresService
+
+<PageTitle>Impression facture</PageTitle>
+
+@if (isLoading)
+{
+    <div class="print-loading">Chargement de la facture...</div>
+}
+else if (facture is null)
+{
+    <div class="print-loading">Facture introuvable.</div>
+}
+else
+{
+    <div class="print-toolbar no-print">
+        <button type="button" class="print-btn" onclick="window.print()">Imprimer</button>
+        <button type="button" class="print-btn print-btn-light" onclick="window.close()">Fermer</button>
+    </div>
+
+    <main class="invoice-page">
+        <header class="invoice-header">
+            <div class="invoice-brand">
+                @if (!string.IsNullOrWhiteSpace(CompanyLogoDataUrl))
+                {
+                    <img class="invoice-logo" src="@CompanyLogoDataUrl" alt="Logo entreprise" />
+                }
+                <p class="invoice-company">@DisplayOrDash(parametres?.RaisonSociale)</p>
+                <h1>FACTURE</h1>
+                <p class="invoice-number">@facture.NumeroFacture</p>
+            </div>
+            <div class="invoice-meta">
+                <div><span>Date:</span> @facture.DateFacture.ToString("dd/MM/yyyy")</div>
+                <div><span>Statut:</span> @GetStatutLabel(facture.Statut)</div>
+            </div>
+        </header>
+
+        <section class="invoice-parties">
+            <article>
+                <h2>Emetteur</h2>
+                <p class="line strong">@DisplayOrDash(parametres?.RaisonSociale)</p>
+                <p class="line">MF: @DisplayOrDash(parametres?.MatriculeFiscale)</p>
+                <p class="line">@DisplayOrDash(parametres?.Adresse)</p>
+                @if (!string.IsNullOrWhiteSpace(parametres?.Telephone))
+                {
+                    <p class="line">Tel: @parametres.Telephone</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(parametres?.Email))
+                {
+                    <p class="line">Email: @parametres.Email</p>
+                }
+            </article>
+            <article>
+                <h2>Destinataire</h2>
+                <p class="line strong">@DisplayOrDash(facture.Client?.Nom)</p>
+                <p class="line">MF: @DisplayOrDash(facture.Client?.MatriculeFiscale)</p>
+                @if (!string.IsNullOrWhiteSpace(facture.Client?.NumeroRne))
+                {
+                    <p class="line">RNE: @facture.Client.NumeroRne</p>
+                }
+                <p class="line">@FormatAddress(facture.Client)</p>
+                @if (!string.IsNullOrWhiteSpace(facture.Client?.Telephone))
+                {
+                    <p class="line">Tel: @facture.Client.Telephone</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(facture.Client?.Telephone2))
+                {
+                    <p class="line">Tel 2: @facture.Client.Telephone2</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(facture.Client?.Fax))
+                {
+                    <p class="line">Fax: @facture.Client.Fax</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(facture.Client?.Email))
+                {
+                    <p class="line">Email: @facture.Client.Email</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(facture.Client?.NomContact))
+                {
+                    <p class="line">Contact: @facture.Client.NomContact@(string.IsNullOrWhiteSpace(facture.Client.PosteContact) ? string.Empty : $" ({facture.Client.PosteContact})")</p>
+                }
+            </article>
+        </section>
+
+        <section class="invoice-lines">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th class="center">Qté</th>
+                        <th class="right">Prix unitaire HT</th>
+                        <th class="center">TVA</th>
+                        <th class="right">Montant HT</th>
+                        <th class="right">Montant TTC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ligne in facture.Lignes.OrderBy(l => l.Id))
+                    {
+                        <tr>
+                            <td>@ligne.Designation</td>
+                            <td class="center">@ligne.Quantite</td>
+                            <td class="right">@ligne.PrixUnitaireHT.ToString("N3") TND</td>
+                            <td class="center">@ligne.TauxTva %</td>
+                            <td class="right">@ligne.MontantHT.ToString("N3") TND</td>
+                            <td class="right">@ligne.MontantTTC.ToString("N3") TND</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+
+        <section class="invoice-bottom">
+            <article class="invoice-notes">
+                <h3>Notes</h3>
+                <p>Merci pour votre confiance.</p>
+                <p>Document genere depuis FacturationTN.</p>
+            </article>
+            <article class="invoice-totals">
+                <div><span>Total HT</span><strong>@facture.TotalHT.ToString("N3") TND</strong></div>
+                <div><span>Total TVA</span><strong>@facture.TotalTVA.ToString("N3") TND</strong></div>
+                <div><span>Timbre fiscal</span><strong>@facture.TimbreFiscal.ToString("N3") TND</strong></div>
+                <div class="grand-total"><span>Total TTC</span><strong>@facture.TotalTTC.ToString("N3") TND</strong></div>
+            </article>
+        </section>
+    </main>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Facture? facture;
+    private FacturationTN.Models.Parametres? parametres;
+    private bool isLoading = true;
+    private string? CompanyLogoDataUrl =>
+        string.IsNullOrWhiteSpace(parametres?.LogoBase64) || string.IsNullOrWhiteSpace(parametres?.LogoContentType)
+            ? null
+            : $"data:{parametres.LogoContentType};base64,{parametres.LogoBase64}";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        facture = await FactureService.GetByIdAsync(Id);
+
+        if (facture is not null)
+        {
+            parametres = await ParametresService.GetAsync();
+        }
+
+        isLoading = false;
+    }
+
+    private static string DisplayOrDash(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? "-" : value;
+    }
+
+    private static string FormatAddress(Client? client)
+    {
+        if (client is null)
+        {
+            return "-";
+        }
+
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(client.Adresse))
+        {
+            parts.Add(client.Adresse);
+        }
+
+        var cityLine = string.Join(" ", new[] { client.CodePostal, client.Ville }.Where(v => !string.IsNullOrWhiteSpace(v)));
+        if (!string.IsNullOrWhiteSpace(cityLine))
+        {
+            parts.Add(cityLine);
+        }
+
+        var regionLine = string.Join(" - ", new[] { client.Gouvernorat, client.Pays }.Where(v => !string.IsNullOrWhiteSpace(v)));
+        if (!string.IsNullOrWhiteSpace(regionLine))
+        {
+            parts.Add(regionLine);
+        }
+
+        return parts.Count == 0 ? "-" : string.Join(", ", parts);
+    }
+
+    private static string GetStatutLabel(StatutFacture statut)
+    {
+        return statut switch
+        {
+            StatutFacture.Brouillon => "Brouillon",
+            StatutFacture.Validee => "Validee",
+            StatutFacture.Payee => "Payee",
+            StatutFacture.Annulee => "Annulee",
+            _ => "-"
+        };
+    }
+}
