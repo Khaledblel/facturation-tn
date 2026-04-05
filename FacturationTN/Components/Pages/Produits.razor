@@ -10,503 +10,488 @@
 <PageTitle>Produits</PageTitle>
 
 <div class="produits-shell">
-    <section class="produits-hero mb-4">
-        <div class="produits-hero-inner">
-            <div>
-                <p class="produits-eyebrow mb-2">Catalogue produits</p>
-                <h1 class="mb-2 produits-title">Gestion des produits</h1>
-            </div>
-            <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
-                <button class="btn btn-primary produits-modal-btn" @onclick="ShowCreateForm">
-                    <span class="me-1">+</span> Nouveau produit
-                </button>
-            </div>
+<section class="produits-hero mb-4">
+    <div class="produits-hero-inner">
+        <div>
+            <p class="produits-eyebrow mb-2">Catalogue produits</p>
+            <h1 class="mb-2 produits-title">Gestion des produits</h1>
         </div>
-    </section>
-
-    @if (!string.IsNullOrWhiteSpace(summaryMessage))
-    {
-        <div class="alert @(summaryIsError ? "alert-danger" : "alert-success") mb-3" role="alert">
-            @summaryMessage
+        <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
+            <button class="btn btn-primary produits-modal-btn" @onclick="ShowCreateForm">
+                <span class="me-1">+</span> Nouveau produit
+            </button>
         </div>
-    }
+    </div>
+</section>
 
-    @* ── Search / Filter Bar ─────────────────────────────────────── *@
-    <div class="card border-0 shadow-sm produits-card mb-3">
-        <div class="card-body py-2">
-            <div class="row g-2 align-items-center">
-                <div class="col-md-3">
-                    <div class="input-group input-group-sm produits-input-group">
-                        <span class="input-group-text bg-white">
-                            <svg class="produits-icon-search" viewBox="0 0 24 24" fill="none"
-                                 xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"></circle>
-                                <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                                </path>
-                            </svg>
-                        </span>
-                        <input type="text" class="form-control" placeholder="Rechercher par référence, désignation..."
-                               @bind="searchTerm" @bind:event="oninput" @bind:after="ApplyFilters" />
-                        @if (!string.IsNullOrEmpty(searchTerm))
-                        {
-                            <button class="btn btn-outline-secondary" @onclick="ClearSearch">✕</button>
-                        }
-                    </div>
+@if (!string.IsNullOrWhiteSpace(summaryMessage))
+{
+    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success") mb-3" role="alert">
+        @summaryMessage
+    </div>
+}
+
+@* ── Search / Filter Bar ─────────────────────────────────────── *@
+<div class="card border-0 shadow-sm produits-card mb-3">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <div class="input-group input-group-sm produits-input-group">
+                    <span class="input-group-text bg-white">
+                        <svg class="produits-icon-search" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"></circle>
+                            <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                        </svg>
+                    </span>
+                    <input type="text" class="form-control" placeholder="Rechercher par référence, désignation..."
+                           @bind="searchTerm" @bind:event="oninput" @bind:after="ApplyFilters" />
+                    @if (!string.IsNullOrEmpty(searchTerm))
+                    {
+                        <button class="btn btn-outline-secondary" @onclick="ClearSearch">✕</button>
+                    }
                 </div>
-                <div class="col-md-2">
-                    <select class="form-select form-select-sm" @bind="filterType" @bind:after="ApplyFilters">
-                        <option value="">Tous types</option>
-                        <option value="Produit">Produit</option>
-                        <option value="Service">Service</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select class="form-select form-select-sm" @bind="filterCategorie" @bind:after="ApplyFilters">
-                        <option value="">Toutes catégories</option>
-                        @foreach (var cat in categoriesProduit)
-                        {
-                            <option value="@cat">@cat</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select class="form-select form-select-sm" @bind="filterStatut" @bind:after="ApplyFilters">
-                        <option value="">Tous statuts</option>
-                        <option value="Actif">Actif</option>
-                        <option value="Inactif">Inactif</option>
-                        <option value="Discontinué">Discontinué</option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <select class="form-select form-select-sm" @bind="filterTva" @bind:after="ApplyFilters">
-                        <option value="-1">TVA</option>
-                        <option value="0">0 %</option>
-                        <option value="7">7 %</option>
-                        <option value="13">13 %</option>
-                        <option value="19">19 %</option>
-                    </select>
-                </div>
-                <div class="col-md-2 text-end">
-                    <span class="produits-count-pill">@filteredCount produit(s)</span>
-                </div>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" @bind="filterType" @bind:after="ApplyFilters">
+                    <option value="">Tous types</option>
+                    <option value="Produit">Produit</option>
+                    <option value="Service">Service</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" @bind="filterCategorie" @bind:after="ApplyFilters">
+                    <option value="">Toutes catégories</option>
+                    @foreach (var cat in categoriesProduit)
+                    {
+                        <option value="@cat">@cat</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select form-select-sm" @bind="filterStatut" @bind:after="ApplyFilters">
+                    <option value="">Tous statuts</option>
+                    <option value="Actif">Actif</option>
+                    <option value="Inactif">Inactif</option>
+                    <option value="Discontinué">Discontinué</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <select class="form-select form-select-sm" @bind="filterTva" @bind:after="ApplyFilters">
+                    <option value="-1">TVA</option>
+                    <option value="0">0 %</option>
+                    <option value="7">7 %</option>
+                    <option value="13">13 %</option>
+                    <option value="19">19 %</option>
+                </select>
+            </div>
+            <div class="col-md-2 text-end">
+                <span class="produits-count-pill">@filteredCount produit(s)</span>
             </div>
         </div>
     </div>
+</div>
 
-    @* ── Product Table ────────────────────────────────────────────── *@
-    <div class="card border-0 shadow-sm produits-card produits-table-card">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 produits-table">
-                    <thead>
+@* ── Product Table ────────────────────────────────────────────── *@
+<div class="card border-0 shadow-sm produits-card produits-table-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 produits-table">
+                <thead>
+                    <tr>
+                        <th>Référence</th>
+                        <th>Désignation</th>
+                        <th class="text-center">Type</th>
+                        <th class="text-center">Catégorie</th>
+                        <th class="text-end">Prix TTC</th>
+                        <th class="text-center">Statut</th>
+                        <th class="text-center" style="width: 260px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (filteredCount == 0)
+                    {
                         <tr>
-                            <th>Référence</th>
-                            <th>Désignation</th>
-                            <th class="text-center">Type</th>
-                            <th class="text-center">Catégorie</th>
-                            <th class="text-end">Prix TTC</th>
-                            <th class="text-center">Statut</th>
-                            <th class="text-center" style="width: 260px;">Actions</th>
+                            <td colspan="7" class="text-center text-muted py-5 produits-empty-row">
+                                @if (!string.IsNullOrEmpty(searchTerm) || filterTva >= 0)
+                                {
+                                    <span>Aucun produit ne correspond aux critères de recherche.</span>
+                                }
+                                else
+                                {
+                                    <span>Aucun produit enregistré. Cliquez sur <strong>Nouveau produit</strong> pour commencer.</span>
+                                }
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @if (filteredCount == 0)
-                        {
-                            <tr>
-                                <td colspan="7" class="text-center text-muted py-5 produits-empty-row">
-                                    @if (!string.IsNullOrEmpty(searchTerm) || filterTva >= 0)
-                                    {
-                                        <span>Aucun produit ne correspond aux critères de recherche.</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Aucun produit enregistré. Cliquez sur <strong>Nouveau produit</strong> pour
-                                            commencer.</span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                            @foreach (var produit in filteredProduits)
-                            {
-                                <tr>
-                                    <td>@produit.Reference</td>
-                                    <td>@produit.Designation</td>
-                                    <td class="text-center">@GetTypeLabel(produit.TypeProduit)</td>
-                                    <td class="text-center">@(produit.Categorie?.Nom ?? "-")</td>
-                                    <td class="text-end">@produit.PrixTTC.ToString("N3")</td>
-                                    <td class="text-center">
-                                        <span
-                                        class="badge @GetStatusBadgeClass(produit.Statut)">@GetStatutLabel(produit.Statut)</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="d-inline-flex gap-1">
-                                            <a class="btn btn-sm produits-action-btn produits-action-view" title="Voir details"
-                                                   href="@($"/produits/{produit.Id}")">
-                                                <svg class="produits-action-icon" viewBox="0 0 24 24" fill="none"
-                                                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                                    <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8">
-                                                    </circle>
-                                                    <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8"
-                                                          stroke-linecap="round"></path>
-                                                </svg>
-                                            </a>
-                                            <button type="button" class="btn btn-sm produits-action-btn produits-action-edit"
-                                                    title="Modifier" @onclick="() => ShowEditForm(produit)">
-                                                <svg class="produits-action-icon" viewBox="0 0 24 24" fill="none"
-                                                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                                    <path
-                                                    d="M4 20H8L18.5 9.5C19.1 8.9 19.1 7.9 18.5 7.3L16.7 5.5C16.1 4.9 15.1 4.9 14.5 5.5L4 16V20Z"
-                                                    stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path>
-                                                </svg>
-                                                <span>Modifier</span>
-                                            </button>
-                                            <button type="button" class="btn btn-sm produits-action-btn produits-action-delete"
-                                                    title="Supprimer" @onclick="() => ShowDeleteConfirmation(produit)">
-                                                <svg class="produits-action-icon" viewBox="0 0 24 24" fill="none"
-                                                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                                    <path d="M5 7H19" stroke="currentColor" stroke-width="1.7"
-                                                          stroke-linecap="round"></path>
-                                                    <path d="M9 7V5.8C9 5.36 9.36 5 9.8 5H14.2C14.64 5 15 5.36 15 5.8V7"
-                                                          stroke="currentColor" stroke-width="1.7"></path>
-                                                    <path d="M8 9.5V18C8 18.55 8.45 19 9 19H15C15.55 19 16 18.55 16 18V9.5"
-                                                          stroke="currentColor" stroke-width="1.7"></path>
-                                                </svg>
-                                                <span>Supprimer</span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                    }
+                    @foreach (var produit in filteredProduits)
+                    {
+                        <tr>
+                            <td>@produit.Reference</td>
+                            <td>@produit.Designation</td>
+                            <td class="text-center">@GetTypeLabel(produit.TypeProduit)</td>
+                            <td class="text-center">@(produit.Categorie?.Nom ?? "-")</td>
+                            <td class="text-end">@produit.PrixTTC.ToString("N3")</td>
+                            <td class="text-center">
+                                <span class="badge @GetStatusBadgeClass(produit.Statut)">@GetStatutLabel(produit.Statut)</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-inline-flex gap-1">
+                                    <a class="btn btn-sm produits-action-btn produits-action-view"
+                                       title="Voir details"
+                                       href="@($"/produits/{produit.Id}")">
+                                        <svg class="produits-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"></circle>
+                                            <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                                        </svg>
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-sm produits-action-btn produits-action-edit"
+                                            title="Modifier"
+                                            @onclick="() => ShowEditForm(produit)">
+                                        <svg class="produits-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M4 20H8L18.5 9.5C19.1 8.9 19.1 7.9 18.5 7.3L16.7 5.5C16.1 4.9 15.1 4.9 14.5 5.5L4 16V20Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path>
+                                        </svg>
+                                        <span>Modifier</span>
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm produits-action-btn produits-action-delete"
+                                            title="Supprimer"
+                                            @onclick="() => ShowDeleteConfirmation(produit)">
+                                        <svg class="produits-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M5 7H19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+                                            <path d="M9 7V5.8C9 5.36 9.36 5 9.8 5H14.2C14.64 5 15 5.36 15 5.8V7" stroke="currentColor" stroke-width="1.7"></path>
+                                            <path d="M8 9.5V18C8 18.55 8.45 19 9 19H15C15.55 19 16 18.55 16 18V9.5" stroke="currentColor" stroke-width="1.7"></path>
+                                        </svg>
+                                        <span>Supprimer</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @* ── Pagination ────────────────────────────────────────────── *@
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2 produits-footer">
+        <span class="text-muted small">Affichage @currentStart–@currentEnd sur @filteredCount résultats</span>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled"><a class="page-link" href="#">«</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item disabled"><a class="page-link" href="#">»</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+</div>
+
+@* ── Delete Confirmation Modal ───────────────────────────────── *@
+@if (showDeleteConfirmation)
+{
+    <div class="modal fade show d-block produits-modal-backdrop" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered produits-delete-dialog">
+            <div class="modal-content border-0 shadow produits-modal-content produits-danger-modal">
+                <div class="modal-header produits-modal-header produits-danger-header">
+                    <h5 class="modal-title produits-modal-title">Supprimer le produit</h5>
+                    <button type="button" class="btn-close" @onclick="HideDeleteConfirmation"></button>
                 </div>
-            </div>
-            @* ── Pagination ────────────────────────────────────────────── *@
-            <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2 produits-footer">
-                <span class="text-muted small">Affichage @currentStart–@currentEnd sur @filteredCount résultats</span>
-                <nav>
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item disabled"><a class="page-link" href="#">«</a></li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item disabled"><a class="page-link" href="#">»</a></li>
-                    </ul>
-                </nav>
+                <div class="modal-body produits-modal-body">
+                    <p class="mb-2 small text-uppercase fw-semibold text-danger-emphasis">Action irreversible</p>
+                    <p class="mb-0 text-break">
+                        Voulez-vous vraiment supprimer
+                        <strong class="d-inline-block w-100 mt-1 text-break">@produitToDeleteName</strong> ?
+                    </p>
+                </div>
+                <div class="modal-footer produits-modal-footer">
+                    <button type="button" class="btn btn-outline-secondary produits-modal-btn" @onclick="HideDeleteConfirmation" disabled="@isDeleting">
+                        Annuler
+                    </button>
+                    <button type="button" class="btn btn-danger produits-modal-btn" @onclick="ConfirmDeleteProduitAsync" disabled="@isDeleting">
+                        @(isDeleting ? "Suppression..." : "Supprimer")
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+}
 
-    @* ── Delete Confirmation Modal ───────────────────────────────── *@
-    @if (showDeleteConfirmation)
-    {
-        <div class="modal fade show d-block produits-modal-backdrop" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-            <div class="modal-dialog modal-dialog-centered produits-delete-dialog">
-                <div class="modal-content border-0 shadow produits-modal-content produits-danger-modal">
-                    <div class="modal-header produits-modal-header produits-danger-header">
-                        <h5 class="modal-title produits-modal-title">Supprimer le produit</h5>
-                        <button type="button" class="btn-close" @onclick="HideDeleteConfirmation"></button>
-                    </div>
-                    <div class="modal-body produits-modal-body">
-                        <p class="mb-2 small text-uppercase fw-semibold text-danger-emphasis">Action irreversible</p>
-                        <p class="mb-0 text-break">
-                            Voulez-vous vraiment supprimer
-                            <strong class="d-inline-block w-100 mt-1 text-break">@produitToDeleteName</strong> ?
-                        </p>
-                    </div>
-                    <div class="modal-footer produits-modal-footer">
-                        <button type="button" class="btn btn-outline-secondary produits-modal-btn"
-                                @onclick="HideDeleteConfirmation" disabled="@isDeleting">
-                            Annuler
-                        </button>
-                        <button type="button" class="btn btn-danger produits-modal-btn" @onclick="ConfirmDeleteProduitAsync"
-                                disabled="@isDeleting">
-                            @(isDeleting ? "Suppression..." : "Supprimer")
-                        </button>
-                    </div>
+@* ── Create / Edit Modal ──────────────────────────────────────── *@
+@if (showForm)
+{
+    <div class="modal fade show d-block produits-modal-backdrop" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable produits-form-dialog">
+            <div class="modal-content border-0 shadow produits-modal-content">
+                <div class="modal-header produits-modal-header">
+                    <h5 class="modal-title produits-modal-title">@(isEditing ? "Modifier le produit" : "Nouveau produit")</h5>
+                    <button type="button" class="btn-close" @onclick="HideForm"></button>
                 </div>
-            </div>
-        </div>
-    }
+                <div class="modal-body produits-modal-body">
 
-    @* ── Create / Edit Modal ──────────────────────────────────────── *@
-    @if (showForm)
-    {
-        <div class="modal fade show d-block produits-modal-backdrop" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable produits-form-dialog">
-                <div class="modal-content border-0 shadow produits-modal-content">
-                    <div class="modal-header produits-modal-header">
-                        <h5 class="modal-title produits-modal-title">@(isEditing ? "Modifier le produit" : "Nouveau produit")
-                        </h5>
-                        <button type="button" class="btn-close" @onclick="HideForm"></button>
-                    </div>
-                    <div class="modal-body produits-modal-body">
+                    @if (showForm && summaryIsError && !string.IsNullOrWhiteSpace(summaryMessage))
+                    {
+                        <div class="alert alert-danger produits-modal-alert" role="alert">
+                            @summaryMessage
+                        </div>
+                    }
 
-                        @if (showForm && summaryIsError && !string.IsNullOrWhiteSpace(summaryMessage))
-                        {
-                            <div class="alert alert-danger produits-modal-alert" role="alert">
-                                @summaryMessage
+                    @* ── Tabs ── *@
+                    <ul class="nav nav-tabs mb-3 produits-form-tabs">
+                        <li class="nav-item">
+                            <button class="nav-link produits-tab-btn @(activeTab == 0 ? "active" : "")" @onclick="() => activeTab = 0">Identification</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link produits-tab-btn @(activeTab == 1 ? "active" : "")" @onclick="() => activeTab = 1">Tarification</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link produits-tab-btn @(activeTab == 2 ? "active" : "") @(IsService ? "text-muted" : "")" @onclick="() => activeTab = 2">Stock</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link produits-tab-btn @(activeTab == 3 ? "active" : "")" @onclick="() => activeTab = 3">Description &amp; Notes</button>
+                        </li>
+                    </ul>
+
+                    @* ── Tab 0 : Identification ── *@
+                    @if (activeTab == 0)
+                    {
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Type de produit <span class="text-danger">*</span></label>
+                                <select class="form-select" @bind="formTypeProduit" @bind:after="OnTypeChanged">
+                                    <option value="">— Sélectionner —</option>
+                                    <option value="Produit">Produit</option>
+                                    <option value="Service">Service</option>
+                                </select>
                             </div>
-                        }
-
-                        @* ── Tabs ── *@
-                        <ul class="nav nav-tabs mb-3 produits-form-tabs">
-                            <li class="nav-item">
-                                <button class="nav-link produits-tab-btn @(activeTab == 0 ? "active" : "")"
-                                        @onclick="() => activeTab = 0">Identification</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link produits-tab-btn @(activeTab == 1 ? "active" : "")"
-                                        @onclick="() => activeTab = 1">Tarification</button>
-                            </li>
-                            <li class="nav-item">
-                                <button
-                                class="nav-link produits-tab-btn @(activeTab == 2 ? "active" : "") @(IsService ? "text-muted" : "")"
-                                @onclick="() => activeTab = 2">Stock</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link produits-tab-btn @(activeTab == 3 ? "active" : "")"
-                                        @onclick="() => activeTab = 3">Description &amp; Notes</button>
-                            </li>
-                        </ul>
-
-                        @* ── Tab 0 : Identification ── *@
-                        @if (activeTab == 0)
-                        {
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">Type de produit <span class="text-danger">*</span></label>
-                                    <select class="form-select" @bind="formTypeProduit" @bind:after="OnTypeChanged">
-                                        <option value="">— Sélectionner —</option>
-                                        <option value="Produit">Produit</option>
-                                        <option value="Service">Service</option>
+                            <div class="col-md-4">
+                                <label class="form-label">Catégorie</label>
+                                @if (!showNewCategorieProduit)
+                                {
+                                    <select class="form-select" value="@formCategorie"
+                                            @onchange="OnFormCategorieProduitChanged">
+                                        <option value="">— Aucune —</option>
+                                        @foreach (var cat in categoriesProduit)
+                                        {
+                                            <option value="@cat">@cat</option>
+                                        }
+                                        <option disabled>────────────────</option>
+                                        <option value="__new__">Créer une catégorie…</option>
                                     </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Catégorie</label>
-                                    @if (!showNewCategorieProduit)
-                                    {
-                                        <select class="form-select" value="@formCategorie" @onchange="OnFormCategorieProduitChanged">
-                                            <option value="">— Aucune —</option>
-                                            @foreach (var cat in categoriesProduit)
-                                            {
-                                                <option value="@cat">@cat</option>
-                                            }
-                                            <option disabled>────────────────</option>
-                                            <option value="__new__">Créer une catégorie…</option>
-                                        </select>
-                                    }
-                                    else
-                                    {
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Nouvelle catégorie" maxlength="30"
-                                                   @bind="newCategorieProduit" @bind:event="oninput" />
-                                            <button class="btn btn-success btn-sm" type="button"
-                                                    disabled="@(string.IsNullOrWhiteSpace(newCategorieProduit) || isCreatingCategory)"
-                                                    @onclick="AddCategorieProduit">✓</button>
-                                            <button class="btn btn-outline-secondary btn-sm" type="button"
-                                                    disabled="@isCreatingCategory" @onclick="CancelNewCategorieProduit">✕</button>
-                                        </div>
-                                    }
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Statut</label>
-                                    <select class="form-select" @bind="formStatut">
-                                        <option value="Actif">Actif</option>
-                                        <option value="Inactif">Inactif</option>
-                                        <option value="Discontinué">Discontinué</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Référence <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" placeholder="Ex: PRD-001" maxlength="50"
-                                           @bind="formReference" />
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Désignation <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" placeholder="Nom du produit" maxlength="50"
-                                           @bind="formDesignation" />
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label @(IsService ? "text-muted" : "")">Marque</label>
-                                    <input type="text" class="form-control"
-                                           placeholder="@(IsService ? "Non applicable" : "Ex: Samsung, Dell...")" maxlength="30"
-                                           @bind="formMarque" disabled="@IsService" />
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Unité de mesure</label>
-                                    @if (!showNewUnite)
-                                    {
-                                        <select class="form-select" value="@formUnite" @onchange="OnFormUniteChanged">
-                                            <option value="">— Aucune —</option>
-                                            @foreach (var u in unitesMesure)
-                                            {
-                                                <option value="@u">@u</option>
-                                            }
-                                            <option disabled>────────────────</option>
-                                            <option value="__new__">Créer une unité…</option>
-                                        </select>
-                                    }
-                                    else
-                                    {
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Nouvelle unité" maxlength="20"
-                                                   @bind="newUnite" @bind:event="oninput" />
-                                            <button class="btn btn-success btn-sm" type="button"
-                                                    disabled="@(string.IsNullOrWhiteSpace(newUnite) || isCreatingUnite)"
-                                                    @onclick="AddUnite">✓</button>
-                                            <button class="btn btn-outline-secondary btn-sm" type="button" disabled="@isCreatingUnite"
-                                                    @onclick="CancelNewUnite">✕</button>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-
-                        @* ── Tab 1 : Tarification ── *@
-                        @if (activeTab == 1)
-                        {
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">@(IsService ? "Coût de revient HT" : "Prix d'achat HT")</label>
+                                }
+                                else
+                                {
                                     <div class="input-group">
-                                        <input type="number" class="form-control" step="0.001" min="0" max="9999999.999"
-                                               placeholder="0.000" @bind="formPrixAchatHT" />
-                                        <span class="input-group-text">TND</span>
-                                    </div>
-                                    <div class="form-text">@(IsService ? "Coût de revient — utile pour le calcul des marges" : "Coût d'achat — utile pour le calcul des marges")</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">@(IsService ? "Tarif HT" : "Prix de vente HT") <span
-                                        class="text-danger">*</span></label>
-                                        <div class="input-group">
-                                            <input type="number" class="form-control" step="0.001" min="0" max="9999999.999"
-                                                   placeholder="0.000" @bind="formPrixHT" @bind:event="oninput" />
-                                            <span class="input-group-text">TND</span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Taux TVA <span class="text-danger">*</span></label>
-                                        <select class="form-select" @bind="formTauxTva" @bind:event="onchange">
-                                            <option value="0">Exonéré — 0 %</option>
-                                            <option value="7">Réduit — 7 %</option>
-                                            <option value="13">Intermédiaire — 13 %</option>
-                                            <option value="19">Normal — 19 %</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">@(IsService ? "Tarif TTC" : "Prix TTC") <span
-                                            class="text-muted">(calculé)</span></label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control bg-light" readonly
-                                                       value="@ComputedPrixTTC.ToString("N3")" />
-                                                <span class="input-group-text">TND</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Marge brute <span class="text-muted">(calculée)</span></label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control bg-light" readonly
-                                                       value="@ComputedMarge.ToString("N3")" />
-                                                <span class="input-group-text">TND</span>
-                                            </div>
-                                            <div class="form-text">@(IsService ? "Tarif HT − Coût de revient HT" : "Prix vente HT − Prix achat HT")</div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Remise maximale autorisée</label>
-                                            <div class="input-group">
-                                                <input type="number" class="form-control" step="0.01" min="0" max="100" placeholder="0.00"
-                                                       @bind="formRemiseMax" />
-                                                <span class="input-group-text">%</span>
-                                            </div>
-                                            <div class="form-text">Plafond de remise applicable sur ce @(IsService ? "service" : "produit")
-                                            </div>
-                                        </div>
+                                        <input type="text" class="form-control" placeholder="Nouvelle catégorie"
+                                               maxlength="30"
+                                               @bind="newCategorieProduit" @bind:event="oninput" />
+                                        <button class="btn btn-success btn-sm" type="button"
+                                            disabled="@(string.IsNullOrWhiteSpace(newCategorieProduit) || isCreatingCategory)"
+                                                @onclick="AddCategorieProduit">✓</button>
+                                        <button class="btn btn-outline-secondary btn-sm" type="button"
+                                            disabled="@isCreatingCategory"
+                                                @onclick="CancelNewCategorieProduit">✕</button>
                                     </div>
                                 }
-
-                                @* ── Tab 2 : Stock ── *@
-                                @if (activeTab == 2)
-                                {
-                                    @if (IsService)
-                                    {
-                                        <div class="alert alert-info py-3 mb-0">
-                                            <strong>ℹ️</strong> Le suivi de stock n'est pas applicable aux services.
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="row g-3">
-                                            <div class="col-12">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox" id="suiviStock" @bind="formSuiviStock" />
-                                                    <label class="form-check-label" for="suiviStock">Activer le suivi de stock</label>
-                                                </div>
-                                            </div>
-                                            @if (formSuiviStock)
-                                            {
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Quantité en stock</label>
-                                                    <div class="input-group">
-                                                        <input type="number" class="form-control" min="0" max="1000000" placeholder="0"
-                                                               @bind="formQuantiteStock" />
-                                                        <span class="input-group-text">@formUnite</span>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Seuil d'alerte</label>
-                                                    <div class="input-group">
-                                                        <input type="number" class="form-control" min="0" max="1000000" placeholder="0"
-                                                               @bind="formSeuilAlerte" />
-                                                        <span class="input-group-text">@formUnite</span>
-                                                    </div>
-                                                    <div class="form-text">Alerte lorsque le stock descend sous ce seuil</div>
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div class="col-12">
-                                                    <div class="alert alert-light py-2 small mb-0">
-                                                        Le suivi de stock est désactivé pour ce produit.
-                                                    </div>
-                                                </div>
-                                            }
-                                        </div>
-                                    }
-                                }
-
-                                @* ── Tab 3 : Description & Notes ── *@
-                                @if (activeTab == 3)
-                                {
-                                    <div class="row g-3">
-                                        <div class="col-12">
-                                            <label class="form-label">Description détaillée</label>
-                                            <textarea class="form-control" rows="4"
-                                                      placeholder="Description complète du produit ou service..." maxlength="1000"
-                                                      @bind="formDescription"></textarea>
-                                            <div class="form-text">Peut apparaître sur les factures si nécessaire.</div>
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label">Notes internes</label>
-                                            <textarea class="form-control" rows="4"
-                                                      placeholder="Remarques internes, fournisseur, conditions..." maxlength="1000"
-                                                      @bind="formNotes"></textarea>
-                                            <div class="form-text">Visible uniquement en interne — n'apparaît pas sur les factures.</div>
-                                        </div>
-                                    </div>
-                                }
-
                             </div>
-                            <div class="modal-footer produits-modal-footer">
-                                <button type="button" class="btn btn-outline-secondary produits-modal-btn"
-                                        @onclick="HideForm">Annuler</button>
-                                <button type="button" class="btn btn-primary produits-modal-btn" @onclick="SaveProduitAsync"
-                                        disabled="@isSaving">
-                                    @(isSaving ? "Enregistrement..." : isEditing ? "Mettre à jour" : "Enregistrer")
-                                </button>
+                            <div class="col-md-4">
+                                <label class="form-label">Statut</label>
+                                <select class="form-select" @bind="formStatut">
+                                    <option value="Actif">Actif</option>
+                                    <option value="Inactif">Inactif</option>
+                                    <option value="Discontinué">Discontinué</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Référence <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Ex: PRD-001" maxlength="50" @bind="formReference" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Désignation <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" placeholder="Nom du produit" maxlength="50" @bind="formDesignation" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label @(IsService ? "text-muted" : "")">Marque</label>
+                                <input type="text" class="form-control" placeholder="@(IsService ? "Non applicable" : "Ex: Samsung, Dell...")" 
+                                       maxlength="30" @bind="formMarque" disabled="@IsService" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Unité de mesure</label>
+                                @if (!showNewUnite)
+                                {
+                                    <select class="form-select" value="@formUnite"
+                                            @onchange="OnFormUniteChanged">
+                                        <option value="">— Aucune —</option>
+                                        @foreach (var u in unitesMesure)
+                                        {
+                                            <option value="@u">@u</option>
+                                        }
+                                        <option disabled>────────────────</option>
+                                        <option value="__new__">Créer une unité…</option>
+                                    </select>
+                                }
+                                else
+                                {
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Nouvelle unité"
+                                               maxlength="20"
+                                               @bind="newUnite" @bind:event="oninput" />
+                                        <button class="btn btn-success btn-sm" type="button"
+                                            disabled="@(string.IsNullOrWhiteSpace(newUnite) || isCreatingUnite)"
+                                                @onclick="AddUnite">✓</button>
+                                        <button class="btn btn-outline-secondary btn-sm" type="button"
+                                            disabled="@isCreatingUnite"
+                                                @onclick="CancelNewUnite">✕</button>
+                                    </div>
+                                }
                             </div>
                         </div>
-                    </div>
+                    }
+
+                    @* ── Tab 1 : Tarification ── *@
+                    @if (activeTab == 1)
+                    {
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">@(IsService ? "Coût de revient HT" : "Prix d'achat HT")</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" step="0.001" min="0" max="9999999.999"
+                                           placeholder="0.000" @bind="formPrixAchatHT" />
+                                    <span class="input-group-text">TND</span>
+                                </div>
+                                <div class="form-text">@(IsService ? "Coût de revient — utile pour le calcul des marges" : "Coût d'achat — utile pour le calcul des marges")</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">@(IsService ? "Tarif HT" : "Prix de vente HT") <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" step="0.001" min="0" max="9999999.999"
+                                           placeholder="0.000" @bind="formPrixHT" @bind:event="oninput" />
+                                    <span class="input-group-text">TND</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Taux TVA <span class="text-danger">*</span></label>
+                                <select class="form-select" @bind="formTauxTva" @bind:event="onchange">
+                                    <option value="0">Exonéré — 0 %</option>
+                                    <option value="7">Réduit — 7 %</option>
+                                    <option value="13">Intermédiaire — 13 %</option>
+                                    <option value="19">Normal — 19 %</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">@(IsService ? "Tarif TTC" : "Prix TTC") <span class="text-muted">(calculé)</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control bg-light" readonly
+                                           value="@ComputedPrixTTC.ToString("N3")" />
+                                    <span class="input-group-text">TND</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Marge brute <span class="text-muted">(calculée)</span></label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control bg-light" readonly
+                                           value="@ComputedMarge.ToString("N3")" />
+                                    <span class="input-group-text">TND</span>
+                                </div>
+                                <div class="form-text">@(IsService ? "Tarif HT − Coût de revient HT" : "Prix vente HT − Prix achat HT")</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Remise maximale autorisée</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" step="0.01" min="0" max="100"
+                                           placeholder="0.00" @bind="formRemiseMax" />
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text">Plafond de remise applicable sur ce @(IsService ? "service" : "produit")</div>
+                            </div>
+                        </div>
+                    }
+
+                    @* ── Tab 2 : Stock ── *@
+                    @if (activeTab == 2)
+                    {
+                        @if (IsService)
+                        {
+                            <div class="alert alert-info py-3 mb-0">
+                                <strong>ℹ️</strong> Le suivi de stock n'est pas applicable aux services.
+                            </div>
+                        }
+                        else
+                        {
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="suiviStock" @bind="formSuiviStock" />
+                                    <label class="form-check-label" for="suiviStock">Activer le suivi de stock</label>
+                                </div>
+                            </div>
+                            @if (formSuiviStock)
+                            {
+                                <div class="col-md-6">
+                                    <label class="form-label">Quantité en stock</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" min="0"
+                                                 max="1000000"
+                                               placeholder="0" @bind="formQuantiteStock" />
+                                        <span class="input-group-text">@formUnite</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Seuil d'alerte</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" min="0"
+                                                 max="1000000"
+                                               placeholder="0" @bind="formSeuilAlerte" />
+                                        <span class="input-group-text">@formUnite</span>
+                                    </div>
+                                    <div class="form-text">Alerte lorsque le stock descend sous ce seuil</div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="col-12">
+                                    <div class="alert alert-light py-2 small mb-0">
+                                        Le suivi de stock est désactivé pour ce produit.
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        }
+                    }
+
+                    @* ── Tab 3 : Description & Notes ── *@
+                    @if (activeTab == 3)
+                    {
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Description détaillée</label>
+                                <textarea class="form-control" rows="4"
+                                          placeholder="Description complète du produit ou service..."
+                                          maxlength="1000"
+                                          @bind="formDescription"></textarea>
+                                <div class="form-text">Peut apparaître sur les factures si nécessaire.</div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Notes internes</label>
+                                <textarea class="form-control" rows="4"
+                                          placeholder="Remarques internes, fournisseur, conditions..."
+                                          maxlength="1000"
+                                          @bind="formNotes"></textarea>
+                                <div class="form-text">Visible uniquement en interne — n'apparaît pas sur les factures.</div>
+                            </div>
+                        </div>
+                    }
+
                 </div>
-            }
+                <div class="modal-footer produits-modal-footer">
+                    <button type="button" class="btn btn-outline-secondary produits-modal-btn" @onclick="HideForm">Annuler</button>
+                    <button type="button" class="btn btn-primary produits-modal-btn" @onclick="SaveProduitAsync" disabled="@isSaving">
+                        @(isSaving ? "Enregistrement..." : isEditing ? "Mettre à jour" : "Enregistrer")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     [SupplyParameterFromQuery(Name = "editId")]
@@ -654,7 +639,7 @@
         try
         {
             var existing = categoriesProduitDb
-            .FirstOrDefault(c => string.Equals(c.Nom, trimmed, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(c => string.Equals(c.Nom, trimmed, StringComparison.OrdinalIgnoreCase));
 
             if (existing is null)
             {
@@ -663,13 +648,13 @@
             }
 
             categoriesProduit = categoriesProduitDb
-            .Select(c => c.Nom)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(n => n)
-            .ToList();
+                .Select(c => c.Nom)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(n => n)
+                .ToList();
 
             formCategorie = categoriesProduit
-            .First(c => string.Equals(c, trimmed, StringComparison.OrdinalIgnoreCase));
+                .First(c => string.Equals(c, trimmed, StringComparison.OrdinalIgnoreCase));
 
             showNewCategorieProduit = false;
             newCategorieProduit = string.Empty;
@@ -724,7 +709,7 @@
         try
         {
             var existing = unitesMesureDb
-            .FirstOrDefault(u => string.Equals(u.Nom, trimmed, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(u => string.Equals(u.Nom, trimmed, StringComparison.OrdinalIgnoreCase));
 
             if (existing is null)
             {
@@ -733,13 +718,13 @@
             }
 
             unitesMesure = unitesMesureDb
-            .Select(u => u.Nom)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(n => n)
-            .ToList();
+                .Select(u => u.Nom)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(n => n)
+                .ToList();
 
             formUnite = unitesMesure
-            .First(u => string.Equals(u, trimmed, StringComparison.OrdinalIgnoreCase));
+                .First(u => string.Equals(u, trimmed, StringComparison.OrdinalIgnoreCase));
 
             showNewUnite = false;
             newUnite = string.Empty;
@@ -896,9 +881,9 @@
         {
             var term = searchTerm.Trim();
             query = query.Where(p =>
-            p.Reference.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-            p.Designation.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-            (!string.IsNullOrWhiteSpace(p.Marque) && p.Marque.Contains(term, StringComparison.OrdinalIgnoreCase)));
+                p.Reference.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                p.Designation.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrWhiteSpace(p.Marque) && p.Marque.Contains(term, StringComparison.OrdinalIgnoreCase)));
         }
 
         if (!string.IsNullOrWhiteSpace(filterType))
@@ -923,8 +908,8 @@
         }
 
         filteredProduits = query
-        .OrderByDescending(p => p.DateCreation)
-        .ToList();
+            .OrderByDescending(p => p.DateCreation)
+            .ToList();
 
         filteredCount = filteredProduits.Count;
         currentStart = filteredCount == 0 ? 0 : 1;
@@ -1009,8 +994,8 @@
         {
             summaryIsError = true;
             summaryMessage = isEditing
-            ? "Une erreur est survenue lors de la mise a jour du produit."
-                            : "Une erreur est survenue lors de la création du produit.";
+                ? "Une erreur est survenue lors de la mise a jour du produit."
+                : "Une erreur est survenue lors de la création du produit.";
         }
         finally
         {
@@ -1028,8 +1013,8 @@
         };
 
         var statut = TryParseStatut(formStatut, out var parsedStatut)
-        ? parsedStatut
-        : StatutProduit.Actif;
+            ? parsedStatut
+            : StatutProduit.Actif;
 
         var isService = typeProduit == TypeProduit.Service;
 
@@ -1062,7 +1047,7 @@
         }
 
         var existing = categoriesProduitDb
-        .FirstOrDefault(c => string.Equals(c.Nom, selectedCategoryName, StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(c => string.Equals(c.Nom, selectedCategoryName, StringComparison.OrdinalIgnoreCase));
 
         if (existing is not null)
         {
@@ -1083,7 +1068,7 @@
         }
 
         var existing = unitesMesureDb
-        .FirstOrDefault(u => string.Equals(u.Nom, selectedUniteName, StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(u => string.Equals(u.Nom, selectedUniteName, StringComparison.OrdinalIgnoreCase));
 
         if (existing is not null)
         {
