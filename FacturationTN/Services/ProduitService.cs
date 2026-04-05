@@ -10,6 +10,17 @@ namespace FacturationTN.Services;
 public class ProduitService(AppDbContext dbContext) : IProduitService
 {
     private readonly AppDbContext _dbContext = dbContext;
+    private static readonly HashSet<string> DefaultUnites = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Pièce",
+        "Kg",
+        "Litre",
+        "Mètre",
+        "m²",
+        "Heure",
+        "Jour",
+        "Forfait"
+    };
 
     public async Task<List<Produit>> GetAllAsync()
     {
@@ -231,6 +242,31 @@ public class ProduitService(AppDbContext dbContext) : IProduitService
         await _dbContext.SaveChangesAsync();
 
         return unite;
+    }
+
+    public async Task DeleteUniteAsync(int id)
+    {
+        var unite = await _dbContext.UnitesMesure
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == id)
+            ?? throw new KeyNotFoundException("Unite introuvable.");
+
+        if (DefaultUnites.Contains(unite.Nom))
+        {
+            throw new ValidationException("Les unites par defaut ne peuvent pas etre supprimees.");
+        }
+
+        var isUsed = await _dbContext.Produits
+            .AsNoTracking()
+            .AnyAsync(p => p.UniteMesureId == id);
+
+        if (isUsed)
+        {
+            throw new InvalidOperationException("Impossible de supprimer cette unite car elle est utilisee par au moins un produit.");
+        }
+
+        _dbContext.UnitesMesure.Remove(new UniteMesure { Id = id });
+        await _dbContext.SaveChangesAsync();
     }
 
     private static bool IsReferenceUniqueViolation(DbUpdateException ex)

@@ -210,6 +210,70 @@
     </div>
 }
 
+@* ── Delete Client Category Modal ───────────────────────────── *@
+@if (showDeleteCategorieClientModal)
+{
+    <div class="modal fade show d-block clients-modal-backdrop" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 2000;">
+        <div class="modal-dialog modal-dialog-centered clients-delete-dialog">
+            <div class="modal-content border-0 shadow clients-modal-content">
+                <div class="modal-header clients-modal-header">
+                    <h5 class="modal-title clients-modal-title">Supprimer une catégorie client</h5>
+                    <button type="button" class="btn-close" @onclick="HideDeleteCategorieClientModal"></button>
+                </div>
+                <div class="modal-body clients-modal-body">
+                    <p class="text-muted mb-3">Seules les catégories personnalisées peuvent être supprimées.</p>
+
+                    @if (!string.IsNullOrWhiteSpace(deleteCategorieClientMessage))
+                    {
+                        <div class="alert @(deleteCategorieClientIsError ? "alert-danger" : "alert-success") clients-modal-alert" role="alert">
+                            @deleteCategorieClientMessage
+                        </div>
+                    }
+
+                    @if (customCategoriesClient.Count == 0)
+                    {
+                        <div class="alert alert-light border mb-0">
+                            Aucune catégorie personnalisée à supprimer.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Catégorie personnalisée</label>
+                            <select class="form-select" @bind="categorieClientToDeleteId">
+                                <option value="">— Sélectionner —</option>
+                                @foreach (var categorie in customCategoriesClient)
+                                {
+                                    <option value="@categorie.Id">@categorie.Nom (@GetCategorieClientUsageCount(categorie.Id) client(s))</option>
+                                }
+                            </select>
+                            <div class="form-text">Les catégories liées à des clients ne peuvent pas être supprimées.</div>
+                        </div>
+
+                        @if (categorieClientToDeleteId.HasValue && GetCategorieClientUsageCount(categorieClientToDeleteId.Value) > 0)
+                        {
+                            <div class="alert alert-warning mb-0">
+                                Cette catégorie est utilisée par @GetCategorieClientUsageCount(categorieClientToDeleteId.Value) client(s).
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="modal-footer clients-modal-footer">
+                    <button type="button" class="btn btn-outline-secondary clients-modal-btn" @onclick="HideDeleteCategorieClientModal" disabled="@isDeletingCategorieClient">
+                        Fermer
+                    </button>
+                    <button type="button"
+                            class="btn btn-danger clients-modal-btn"
+                            @onclick="DeleteSelectedCategorieClientAsync"
+                            disabled="@(isDeletingCategorieClient || !categorieClientToDeleteId.HasValue || GetCategorieClientUsageCount(categorieClientToDeleteId.Value) > 0)">
+                        @(isDeletingCategorieClient ? "Suppression..." : "Supprimer")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @* ── Create / Edit Form (collapsible) ─────────────────────────── *@
 @if (showForm)
 {
@@ -278,6 +342,7 @@
                                         }
                                         <option disabled>────────────────</option>
                                         <option value="__new__">Créer une catégorie…</option>
+                                        <option value="__delete__">Supprimer une catégorie…</option>
                                     </select>
                                 }
                                 else
@@ -517,9 +582,25 @@
     // ── Dynamic category list (persisted via service later) ──
     private List<CategorieClient> categoriesClientDb = [];
     private List<string> categoriesClient = [];
+    private static readonly HashSet<string> DefaultCategoriesClient = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "VIP",
+        "PME",
+        "Particulier",
+        "Export"
+    };
+    private List<CategorieClient> customCategoriesClient => categoriesClientDb
+        .Where(c => !DefaultCategoriesClient.Contains(c.Nom))
+        .OrderBy(c => c.Nom)
+        .ToList();
     private bool showNewCategorieClient = false;
     private string newCategorieClient = string.Empty;
     private bool isCreatingCategory;
+    private bool showDeleteCategorieClientModal;
+    private int? categorieClientToDeleteId;
+    private bool isDeletingCategorieClient;
+    private string deleteCategorieClientMessage = string.Empty;
+    private bool deleteCategorieClientIsError;
 
     // ── Data / feedback state ──
     private List<Client> allClients = [];
@@ -594,10 +675,37 @@
             showNewCategorieClient = true;
             newCategorieClient = string.Empty;
         }
+        else if (val == "__delete__")
+        {
+            showNewCategorieClient = false;
+            newCategorieClient = string.Empty;
+            ShowDeleteCategorieClientModal();
+        }
         else
         {
             formCategorie = val;
         }
+    }
+
+    private void ShowDeleteCategorieClientModal()
+    {
+        deleteCategorieClientMessage = string.Empty;
+        deleteCategorieClientIsError = false;
+        categorieClientToDeleteId = null;
+        showDeleteCategorieClientModal = true;
+    }
+
+    private void HideDeleteCategorieClientModal()
+    {
+        showDeleteCategorieClientModal = false;
+        categorieClientToDeleteId = null;
+        deleteCategorieClientMessage = string.Empty;
+        deleteCategorieClientIsError = false;
+    }
+
+    private int GetCategorieClientUsageCount(int categorieClientId)
+    {
+        return allClients.Count(c => c.CategorieClientId == categorieClientId);
     }
 
     private async Task AddCategorieClient()
@@ -654,6 +762,66 @@
     {
         showNewCategorieClient = false;
         newCategorieClient = string.Empty;
+    }
+
+    private async Task DeleteSelectedCategorieClientAsync()
+    {
+        if (isDeletingCategorieClient || !categorieClientToDeleteId.HasValue)
+        {
+            return;
+        }
+
+        if (GetCategorieClientUsageCount(categorieClientToDeleteId.Value) > 0)
+        {
+            deleteCategorieClientIsError = true;
+            deleteCategorieClientMessage = "Impossible de supprimer cette categorie car elle est utilisee par au moins un client.";
+            return;
+        }
+
+        isDeletingCategorieClient = true;
+        try
+        {
+            var categorieId = categorieClientToDeleteId.Value;
+            var deletedCategory = categoriesClientDb.FirstOrDefault(c => c.Id == categorieId);
+            var deletedCategoryName = deletedCategory?.Nom;
+
+            await ClientService.DeleteCategorieAsync(categorieId);
+            await LoadPageDataAsync();
+
+            if (!string.IsNullOrWhiteSpace(deletedCategoryName) &&
+                string.Equals(formCategorie, deletedCategoryName, StringComparison.OrdinalIgnoreCase))
+            {
+                formCategorie = string.Empty;
+            }
+
+            summaryIsError = false;
+            summaryMessage = "Categorie client supprimee avec succes.";
+            HideDeleteCategorieClientModal();
+        }
+        catch (ValidationException ex)
+        {
+            deleteCategorieClientIsError = true;
+            deleteCategorieClientMessage = ex.Message;
+        }
+        catch (InvalidOperationException ex)
+        {
+            deleteCategorieClientIsError = true;
+            deleteCategorieClientMessage = ex.Message;
+        }
+        catch (KeyNotFoundException ex)
+        {
+            deleteCategorieClientIsError = true;
+            deleteCategorieClientMessage = ex.Message;
+        }
+        catch
+        {
+            deleteCategorieClientIsError = true;
+            deleteCategorieClientMessage = "Impossible de supprimer la categorie pour le moment.";
+        }
+        finally
+        {
+            isDeletingCategorieClient = false;
+        }
     }
 
     private void ShowCreateForm()

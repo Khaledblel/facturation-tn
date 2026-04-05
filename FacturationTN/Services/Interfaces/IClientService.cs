@@ -23,4 +23,5 @@ public interface IClientService
     // ── Catégories dynamiques ──
     Task<List<CategorieClient>> GetCategoriesAsync();
     Task<CategorieClient> CreateCategorieAsync(string nom);
+    Task DeleteCategorieAsync(int id);
 }

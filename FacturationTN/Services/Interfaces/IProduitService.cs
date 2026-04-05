@@ -28,4 +28,5 @@ public interface IProduitService
     // ── Unités de mesure dynamiques ──
     Task<List<UniteMesure>> GetUnitesAsync();
     Task<UniteMesure> CreateUniteAsync(string nom);
+    Task DeleteUniteAsync(int id);
 }

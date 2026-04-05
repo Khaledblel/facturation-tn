@@ -216,6 +216,70 @@
     </div>
 }
 
+@* ── Delete Unit Modal ───────────────────────────────────────── *@
+@if (showDeleteUniteModal)
+{
+    <div class="modal fade show d-block produits-modal-backdrop" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 2000;">
+        <div class="modal-dialog modal-dialog-centered produits-delete-dialog">
+            <div class="modal-content border-0 shadow produits-modal-content">
+                <div class="modal-header produits-modal-header">
+                    <h5 class="modal-title produits-modal-title">Supprimer une unité de mesure</h5>
+                    <button type="button" class="btn-close" @onclick="HideDeleteUniteModal"></button>
+                </div>
+                <div class="modal-body produits-modal-body">
+                    <p class="text-muted mb-3">Seules les unités personnalisées peuvent être supprimées.</p>
+
+                    @if (!string.IsNullOrWhiteSpace(deleteUniteMessage))
+                    {
+                        <div class="alert @(deleteUniteIsError ? "alert-danger" : "alert-success") produits-modal-alert" role="alert">
+                            @deleteUniteMessage
+                        </div>
+                    }
+
+                    @if (customUnitesMesure.Count == 0)
+                    {
+                        <div class="alert alert-light border mb-0">
+                            Aucune unité personnalisée à supprimer.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Unité personnalisée</label>
+                            <select class="form-select" @bind="uniteToDeleteId">
+                                <option value="">— Sélectionner —</option>
+                                @foreach (var unite in customUnitesMesure)
+                                {
+                                    <option value="@unite.Id">@unite.Nom (@GetUniteUsageCount(unite.Id) produit(s))</option>
+                                }
+                            </select>
+                            <div class="form-text">Les unités liées à des produits ne peuvent pas être supprimées.</div>
+                        </div>
+
+                        @if (uniteToDeleteId.HasValue && GetUniteUsageCount(uniteToDeleteId.Value) > 0)
+                        {
+                            <div class="alert alert-warning mb-0">
+                                Cette unité est utilisée par @GetUniteUsageCount(uniteToDeleteId.Value) produit(s).
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="modal-footer produits-modal-footer">
+                    <button type="button" class="btn btn-outline-secondary produits-modal-btn" @onclick="HideDeleteUniteModal" disabled="@isDeletingUnite">
+                        Fermer
+                    </button>
+                    <button type="button"
+                            class="btn btn-danger produits-modal-btn"
+                            @onclick="DeleteSelectedUniteAsync"
+                            disabled="@(isDeletingUnite || !uniteToDeleteId.HasValue || GetUniteUsageCount(uniteToDeleteId.Value) > 0)">
+                        @(isDeletingUnite ? "Suppression..." : "Supprimer")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @* ── Create / Edit Modal ──────────────────────────────────────── *@
 @if (showForm)
 {
@@ -327,6 +391,7 @@
                                         }
                                         <option disabled>────────────────</option>
                                         <option value="__new__">Créer une unité…</option>
+                                        <option value="__delete__">Supprimer une unité…</option>
                                     </select>
                                 }
                                 else
@@ -512,12 +577,32 @@
     private List<string> categoriesProduit = [];
     private List<UniteMesure> unitesMesureDb = [];
     private List<string> unitesMesure = [];
+    private static readonly HashSet<string> DefaultUnitesMesure = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Pièce",
+        "Kg",
+        "Litre",
+        "Mètre",
+        "m²",
+        "Heure",
+        "Jour",
+        "Forfait"
+    };
+    private List<UniteMesure> customUnitesMesure => unitesMesureDb
+        .Where(u => !DefaultUnitesMesure.Contains(u.Nom))
+        .OrderBy(u => u.Nom)
+        .ToList();
     private bool showNewCategorieProduit = false;
     private string newCategorieProduit = string.Empty;
     private bool isCreatingCategory;
     private bool showNewUnite = false;
     private string newUnite = string.Empty;
     private bool isCreatingUnite;
+    private bool showDeleteUniteModal;
+    private int? uniteToDeleteId;
+    private bool isDeletingUnite;
+    private string deleteUniteMessage = string.Empty;
+    private bool deleteUniteIsError;
 
     // ── Data / feedback state ──
     private List<Produit> allProduits = [];
@@ -691,6 +776,12 @@
             showNewUnite = true;
             newUnite = string.Empty;
         }
+        else if (val == "__delete__")
+        {
+            showNewUnite = false;
+            newUnite = string.Empty;
+            ShowDeleteUniteModal();
+        }
         else
         {
             formUnite = val;
@@ -751,6 +842,87 @@
     {
         showNewUnite = false;
         newUnite = string.Empty;
+    }
+
+    private void ShowDeleteUniteModal()
+    {
+        deleteUniteMessage = string.Empty;
+        deleteUniteIsError = false;
+        uniteToDeleteId = null;
+        showDeleteUniteModal = true;
+    }
+
+    private void HideDeleteUniteModal()
+    {
+        showDeleteUniteModal = false;
+        uniteToDeleteId = null;
+        deleteUniteMessage = string.Empty;
+        deleteUniteIsError = false;
+    }
+
+    private int GetUniteUsageCount(int uniteId)
+    {
+        return allProduits.Count(p => p.UniteMesureId == uniteId);
+    }
+
+    private async Task DeleteSelectedUniteAsync()
+    {
+        if (isDeletingUnite || !uniteToDeleteId.HasValue)
+        {
+            return;
+        }
+
+        if (GetUniteUsageCount(uniteToDeleteId.Value) > 0)
+        {
+            deleteUniteIsError = true;
+            deleteUniteMessage = "Impossible de supprimer cette unite car elle est utilisee par au moins un produit.";
+            return;
+        }
+
+        isDeletingUnite = true;
+        try
+        {
+            var uniteId = uniteToDeleteId.Value;
+            var deletedUnite = unitesMesureDb.FirstOrDefault(u => u.Id == uniteId);
+            var deletedUniteName = deletedUnite?.Nom;
+
+            await ProduitService.DeleteUniteAsync(uniteId);
+            await LoadPageDataAsync();
+
+            if (!string.IsNullOrWhiteSpace(deletedUniteName) &&
+                string.Equals(formUnite, deletedUniteName, StringComparison.OrdinalIgnoreCase))
+            {
+                formUnite = string.Empty;
+            }
+
+            summaryIsError = false;
+            summaryMessage = "Unite de mesure supprimee avec succes.";
+            HideDeleteUniteModal();
+        }
+        catch (ValidationException ex)
+        {
+            deleteUniteIsError = true;
+            deleteUniteMessage = ex.Message;
+        }
+        catch (InvalidOperationException ex)
+        {
+            deleteUniteIsError = true;
+            deleteUniteMessage = ex.Message;
+        }
+        catch (KeyNotFoundException ex)
+        {
+            deleteUniteIsError = true;
+            deleteUniteMessage = ex.Message;
+        }
+        catch
+        {
+            deleteUniteIsError = true;
+            deleteUniteMessage = "Impossible de supprimer l'unite pour le moment.";
+        }
+        finally
+        {
+            isDeletingUnite = false;
+        }
     }
 
     private void OnTypeChanged()

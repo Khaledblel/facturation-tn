@@ -10,6 +10,13 @@ namespace FacturationTN.Services;
 public class ClientService(AppDbContext dbContext) : IClientService
 {
     private readonly AppDbContext _dbContext = dbContext;
+    private static readonly HashSet<string> DefaultCategories = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "VIP",
+        "PME",
+        "Particulier",
+        "Export"
+    };
 
     public async Task<List<Client>> GetAllAsync()
     {
@@ -186,6 +193,31 @@ public class ClientService(AppDbContext dbContext) : IClientService
         await _dbContext.SaveChangesAsync();
 
         return categorie;
+    }
+
+    public async Task DeleteCategorieAsync(int id)
+    {
+        var categorie = await _dbContext.CategoriesClient
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id)
+            ?? throw new KeyNotFoundException("Categorie introuvable.");
+
+        if (DefaultCategories.Contains(categorie.Nom))
+        {
+            throw new ValidationException("Les categories par defaut ne peuvent pas etre supprimees.");
+        }
+
+        var isUsed = await _dbContext.Clients
+            .AsNoTracking()
+            .AnyAsync(c => c.CategorieClientId == id);
+
+        if (isUsed)
+        {
+            throw new InvalidOperationException("Impossible de supprimer cette categorie car elle est utilisee par au moins un client.");
+        }
+
+        _dbContext.CategoriesClient.Remove(new CategorieClient { Id = id });
+        await _dbContext.SaveChangesAsync();
     }
 
     private static bool IsMatriculeUniqueViolation(DbUpdateException ex)
