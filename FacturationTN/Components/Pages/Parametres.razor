@@ -1,6 +1,9 @@
 @page "/parametres"
 @rendermode InteractiveServer
 
+@using FacturationTN.Services.Interfaces
+@inject IParametresService ParametresService
+
 <PageTitle>Paramètres</PageTitle>
 
 <h1 class="mb-4">Paramètres</h1>
@@ -171,9 +174,35 @@
 
     // ── Logo ──
     private string? logoPreviewUrl;
+    private bool logoRemoved = false;
     private string? logoError;
     private IBrowserFile? logoFile;
     private const long MaxLogoSize = 2 * 1024 * 1024; // 2 MB
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        var p = await ParametresService.GetAsync();
+
+        montantTimbre = p.MontantTimbreFiscal;
+
+        entrepriseNom = p.RaisonSociale ?? string.Empty;
+        entrepriseMatricule = p.MatriculeFiscale ?? string.Empty;
+        entrepriseAdresse = p.Adresse ?? string.Empty;
+        entrepriseTel = p.Telephone ?? string.Empty;
+        entrepriseEmail = p.Email ?? string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(p.LogoBase64) && !string.IsNullOrWhiteSpace(p.LogoContentType))
+        {
+            logoPreviewUrl = $"data:{p.LogoContentType};base64,{p.LogoBase64}";
+        }
+
+        logoRemoved = false;
+    }
 
     private async Task OnLogoSelected(InputFileChangeEventArgs e)
     {
@@ -194,6 +223,7 @@
         }
 
         logoFile = file;
+        logoRemoved = false;
 
         // Generate a base64 preview
         using var stream = file.OpenReadStream(MaxLogoSize);
@@ -208,17 +238,57 @@
         logoFile = null;
         logoPreviewUrl = null;
         logoError = null;
+        logoRemoved = true;
     }
 
-    private void SaveTimbre()
+    private async Task SaveTimbre()
     {
-        // TODO: call IParametresService to persist
+        await ParametresService.UpdateTimbreFiscalAsync(montantTimbre);
         timbreSaved = true;
     }
 
-    private void SaveEntreprise()
+    private async Task SaveEntreprise()
     {
-        // TODO: call IParametresService to persist
+        var p = await ParametresService.GetAsync();
+
+        p.RaisonSociale = entrepriseNom;
+        p.MatriculeFiscale = entrepriseMatricule;
+        p.Adresse = entrepriseAdresse;
+        p.Telephone = string.IsNullOrWhiteSpace(entrepriseTel) ? null : entrepriseTel;
+        p.Email = string.IsNullOrWhiteSpace(entrepriseEmail) ? null : entrepriseEmail;
+
+        if (!string.IsNullOrWhiteSpace(logoPreviewUrl))
+        {
+            var (base64, contentType) = ParseDataUrl(logoPreviewUrl);
+            p.LogoBase64 = base64;
+            p.LogoContentType = contentType;
+        }
+        else if (logoRemoved)
+        {
+            p.LogoBase64 = null;
+            p.LogoContentType = null;
+        }
+
+        await ParametresService.UpdateAsync(p);
         entrepriseSaved = true;
+    }
+
+    private static (string base64, string contentType) ParseDataUrl(string dataUrl)
+    {
+        const string prefix = "data:";
+        const string marker = ";base64,";
+
+        if (!dataUrl.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
+            !dataUrl.Contains(marker, StringComparison.OrdinalIgnoreCase))
+        {
+            // Should not happen with our own generated dataUrl.
+            return (string.Empty, string.Empty);
+        }
+
+        var markerIndex = dataUrl.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        var contentType = dataUrl.Substring(prefix.Length, markerIndex - prefix.Length);
+        var base64Start = markerIndex + marker.Length;
+        var base64 = dataUrl.Substring(base64Start);
+        return (base64, contentType);
     }
 }

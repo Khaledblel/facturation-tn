@@ -1,12 +1,32 @@
 @page "/factures/creer"
+@page "/factures/editer/{id:int}"
 @rendermode InteractiveServer
 
-<PageTitle>Nouvelle facture</PageTitle>
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components
+@using FacturationTN.Models
+@using FacturationTN.Models.Enums
+@using FacturationTN.Services.Interfaces
+
+@inject IClientService ClientService
+@inject IProduitService ProduitService
+@inject IFactureService FactureService
+@inject IParametresService ParametresService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@(Id.HasValue ? "Modifier facture" : "Nouvelle facture")</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">Nouvelle facture</h1>
+    <h1 class="mb-0">@(Id.HasValue ? "Modifier la facture" : "Nouvelle facture")</h1>
     <a class="btn btn-outline-secondary btn-sm" href="/factures">← Retour à la liste</a>
 </div>
+
+@if (!string.IsNullOrWhiteSpace(summaryMessage))
+{
+    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success")" role="alert">
+        @summaryMessage
+    </div>
+}
 
 @* ── Invoice Header ───────────────────────────────────────────── *@
 <div class="card border-0 shadow-sm mb-3">
@@ -25,7 +45,10 @@
                 <label class="form-label">Client <span class="text-danger">*</span></label>
                 <select class="form-select" @bind="selectedClientId">
                     <option value="">— Sélectionner un client —</option>
-                    @* TODO: populate from IClientService *@
+                    @foreach (var c in clients)
+                    {
+                        <option value="@c.Id">@c.Nom</option>
+                    }
                 </select>
             </div>
         </div>
@@ -72,12 +95,17 @@
                                 <select class="form-select form-select-sm" @bind="ligne.ProduitId"
                                         @bind:after="() => OnProduitChanged(index)">
                                     <option value="">— Produit —</option>
-                                    @* TODO: populate from IProduitService *@
+                                    @foreach (var p in produits)
+                                    {
+                                        <option value="@p.Id">@p.Reference — @p.Designation</option>
+                                    }
                                 </select>
                             </td>
                             <td>
-                                <input type="text" class="form-control form-control-sm bg-light" readonly
-                                       value="@ligne.Designation" />
+                                <input type="text"
+                                       class="form-control form-control-sm bg-light"
+                                       @bind="ligne.Designation"
+                                       @bind:event="oninput" />
                             </td>
                             <td>
                                 <input type="number" class="form-control form-control-sm text-center" min="1"
@@ -151,13 +179,27 @@
 </div>
 
 @code {
+    [Parameter] public int? Id { get; set; }
+
+    // ── UI messages ──
+    private string? summaryMessage;
+    private bool summaryIsError = false;
+
+    // ── Lookups ──
+    private List<Client> clients = new();
+    private List<Produit> produits = new();
+    private bool lookupsLoaded;
+
     // ── Invoice header ──
-    private string numeroFacture = $"FA-{DateTime.Now:yyyy}-0001";
+    private string numeroFacture = string.Empty;
     private DateTime dateFacture = DateTime.Today;
     private string selectedClientId = string.Empty;
 
     // ── Fiscal params ──
     private decimal timbreFiscal = 1.000m;
+    private StatutFacture statutFacture = StatutFacture.Brouillon;
+
+    private bool isSaving;
 
     // ── Line items ──
     private List<LigneFactureVM> lignes = new();
@@ -173,7 +215,76 @@
         .OrderBy(g => g.Key)
         .Select(g => new TvaLine(g.Key, g.Sum(l => l.MontantTva)));
 
-    private bool CanSave => !string.IsNullOrEmpty(selectedClientId) && lignes.Count > 0;
+    private bool CanSave =>
+        !isSaving
+        && !string.IsNullOrWhiteSpace(selectedClientId)
+        && lignes.Count > 0
+        && statutFacture != StatutFacture.Payee
+        && statutFacture != StatutFacture.Annulee;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        summaryMessage = null;
+        summaryIsError = false;
+
+        if (!lookupsLoaded)
+        {
+            await LoadLookupsAsync();
+        }
+
+        if (Id.HasValue)
+        {
+            await LoadFactureAsync(Id.Value);
+        }
+        else
+        {
+            await LoadCreateDefaultsAsync();
+        }
+    }
+
+    private async Task LoadLookupsAsync()
+    {
+        clients = await ClientService.GetAllAsync();
+        produits = await ProduitService.GetAllAsync();
+        lookupsLoaded = true;
+    }
+
+    private async Task LoadCreateDefaultsAsync()
+    {
+        numeroFacture = await FactureService.GenererNumeroAsync();
+        dateFacture = DateTime.Today;
+        selectedClientId = string.Empty;
+
+        timbreFiscal = await ParametresService.GetTimbreFiscalAsync();
+        statutFacture = StatutFacture.Brouillon;
+
+        lignes = new List<LigneFactureVM>();
+    }
+
+    private async Task LoadFactureAsync(int factureId)
+    {
+        var facture = await FactureService.GetByIdAsync(factureId);
+        if (facture is null)
+        {
+            NavigationManager.NavigateTo("/not-found");
+            return;
+        }
+
+        numeroFacture = facture.NumeroFacture;
+        dateFacture = facture.DateFacture;
+        selectedClientId = facture.ClientId.ToString();
+        timbreFiscal = facture.TimbreFiscal;
+        statutFacture = facture.Statut;
+
+        lignes = facture.Lignes.Select(l => new LigneFactureVM
+        {
+            ProduitId = l.ProduitId.ToString(),
+            Designation = l.Designation,
+            Quantite = l.Quantite,
+            PrixUnitaireHT = l.PrixUnitaireHT,
+            TauxTva = l.TauxTva
+        }).ToList();
+    }
 
     // ── Actions ──
     private void AddLine()
@@ -184,17 +295,111 @@
     private void RemoveLine(int index)
     {
         if (index >= 0 && index < lignes.Count)
+        {
             lignes.RemoveAt(index);
+        }
     }
 
     private void OnProduitChanged(int index)
     {
-        // TODO: look up produit from IProduitService and fill Designation, PrixUnitaireHT, TauxTva
+        if (index < 0 || index >= lignes.Count)
+        {
+            return;
+        }
+
+        if (!int.TryParse(lignes[index].ProduitId, out var produitId) || produitId <= 0)
+        {
+            lignes[index].Designation = string.Empty;
+            lignes[index].PrixUnitaireHT = 0;
+            lignes[index].TauxTva = 19;
+            return;
+        }
+
+        var produit = produits.FirstOrDefault(p => p.Id == produitId);
+        if (produit is null)
+        {
+            return;
+        }
+
+        lignes[index].Designation = produit.Designation;
+        lignes[index].PrixUnitaireHT = produit.PrixVenteHT;
+        lignes[index].TauxTva = produit.TauxTva;
     }
 
-    private void SaveFacture()
+    private async Task SaveFacture()
     {
-        // TODO: call IFactureService to persist
+        if (!int.TryParse(selectedClientId, out var clientId) || clientId <= 0)
+        {
+            return;
+        }
+
+        if (lignes.Count == 0)
+        {
+            return;
+        }
+
+        isSaving = true;
+        summaryMessage = null;
+        summaryIsError = false;
+
+        try
+        {
+            var entityLignes = new List<LigneFacture>();
+
+            foreach (var l in lignes)
+            {
+                if (!int.TryParse(l.ProduitId, out var produitId) || produitId <= 0)
+                {
+                    throw new ValidationException("Veuillez selectionner un produit pour toutes les lignes.");
+                }
+
+                entityLignes.Add(new LigneFacture
+                {
+                    ProduitId = produitId,
+                    Designation = l.Designation,
+                    Quantite = l.Quantite,
+                    PrixUnitaireHT = l.PrixUnitaireHT,
+                    TauxTva = l.TauxTva
+                });
+            }
+
+            var facture = new Facture
+            {
+                NumeroFacture = numeroFacture.Trim(),
+                DateFacture = dateFacture,
+                ClientId = clientId,
+                TimbreFiscal = timbreFiscal,
+                Statut = statutFacture,
+                Lignes = entityLignes
+            };
+
+            if (Id.HasValue)
+            {
+                facture.Id = Id.Value;
+                await FactureService.UpdateAsync(facture);
+            }
+            else
+            {
+                facture.Statut = StatutFacture.Brouillon;
+                await FactureService.CreateAsync(facture);
+            }
+
+            NavigationManager.NavigateTo("/factures");
+        }
+        catch (ValidationException ex)
+        {
+            summaryIsError = true;
+            summaryMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            summaryIsError = true;
+            summaryMessage = "Une erreur est survenue lors de la sauvegarde de la facture.";
+        }
+        finally
+        {
+            isSaving = false;
+        }
     }
 
     private string GetTvaBadgeClass(int taux) => taux switch

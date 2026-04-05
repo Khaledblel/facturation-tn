@@ -1,6 +1,12 @@
 @page "/factures"
 @rendermode InteractiveServer
 
+@using FacturationTN.Models
+@using FacturationTN.Models.Enums
+@using FacturationTN.Services.Interfaces
+@inject IFactureService FactureService
+@inject IClientService ClientService
+
 <PageTitle>Factures</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -10,6 +16,13 @@
     </a>
 </div>
 
+@if (!string.IsNullOrWhiteSpace(summaryMessage))
+{
+    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success")" role="alert">
+        @summaryMessage
+    </div>
+}
+
 @* ── Search / Filter Bar ─────────────────────────────────────── *@
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-body py-2">
@@ -18,7 +31,7 @@
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white">🔍</span>
                     <input type="text" class="form-control" placeholder="Rechercher par N° facture, client..."
-                           @bind="searchTerm" @bind:event="oninput" />
+                           @bind="searchTerm" @bind:event="oninput" @bind:after="ApplyFilters" />
                     @if (!string.IsNullOrEmpty(searchTerm))
                     {
                         <button class="btn btn-outline-secondary" @onclick="ClearSearch">✕</button>
@@ -28,19 +41,22 @@
             <div class="col-md-2">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white small">Du</span>
-                    <input type="date" class="form-control" @bind="dateFrom" />
+                    <input type="date" class="form-control" @bind="dateFrom" @bind:after="ApplyFilters" />
                 </div>
             </div>
             <div class="col-md-2">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-white small">Au</span>
-                    <input type="date" class="form-control" @bind="dateTo" />
+                    <input type="date" class="form-control" @bind="dateTo" @bind:after="ApplyFilters" />
                 </div>
             </div>
             <div class="col-md-2">
-                <select class="form-select form-select-sm" @bind="filterClient">
+                <select class="form-select form-select-sm" @bind="filterClient" @bind:after="ApplyFilters">
                     <option value="">Tous les clients</option>
-                    @* TODO: populate from IClientService *@
+                    @foreach (var c in clients)
+                    {
+                        <option value="@c.Id">@c.Nom</option>
+                    }
                 </select>
             </div>
             <div class="col-md-2 text-end">
@@ -83,7 +99,41 @@
                             </td>
                         </tr>
                     }
-                    @* TODO: @foreach (var facture in filteredFactures) { rows with formatted TND values } *@
+                    @foreach (var facture in filteredFactures)
+                    {
+                        <tr>
+                            <td>@facture.NumeroFacture</td>
+                            <td>@facture.DateFacture.ToString("dd/MM/yyyy")</td>
+                            <td>@(facture.Client?.Nom ?? "-")</td>
+                            <td class="text-end">@facture.TotalHT.ToString("N3") TND</td>
+                            <td class="text-end">@facture.TotalTVA.ToString("N3") TND</td>
+                            <td class="text-end">@facture.TimbreFiscal.ToString("N3") TND</td>
+                            <td class="text-end">@facture.TotalTTC.ToString("N3") TND</td>
+                            <td class="text-center">
+                                <div class="d-inline-flex gap-1">
+                                    <a class="btn btn-sm btn-outline-info" href="@($"/factures/editer/{facture.Id}")" title="Modifier">
+                                        Modifier
+                                    </a>
+
+                                    @if (facture.Statut == StatutFacture.Brouillon)
+                                    {
+                                        <button class="btn btn-sm btn-outline-success" @onclick="() => ValiderAsync(facture.Id)" disabled="@isBusy">
+                                            Valider
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteAsync(facture.Id)" disabled="@isBusy">
+                                            Supprimer
+                                        </button>
+                                    }
+                                    else if (facture.Statut == StatutFacture.Validee)
+                                    {
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => MarquerPayeeAsync(facture.Id)" disabled="@isBusy">
+                                            Marquer payée
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
@@ -102,17 +152,204 @@
 </div>
 
 @code {
+    private string? summaryMessage;
+    private bool summaryIsError = false;
+
+    private List<Client> clients = new();
+    private List<Facture> allFactures = new();
+    private List<Facture> filteredFactures = new();
+
     // ── Search & filter state ──
     private string searchTerm = string.Empty;
     private DateTime? dateFrom;
     private DateTime? dateTo;
     private string filterClient = string.Empty;
+
+    private bool isBusy = false;
     private int filteredCount = 0;
     private int currentStart = 0;
     private int currentEnd = 0;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPageDataAsync();
+    }
+
+    private async Task LoadPageDataAsync()
+    {
+        summaryMessage = null;
+        summaryIsError = false;
+
+        clients = await ClientService.GetAllAsync();
+        allFactures = await LoadAllFacturesAsync();
+
+        ApplyFilters();
+    }
+
+    private async Task<List<Facture>> LoadAllFacturesAsync()
+    {
+        var result = new List<Facture>();
+        var page = 1;
+        const int pageSize = 2000;
+
+        while (true)
+        {
+            var (items, totalCount) = await FactureService.SearchAsync(
+                searchTerm: null,
+                dateFrom: null,
+                dateTo: null,
+                clientId: null,
+                page: page,
+                pageSize: pageSize);
+
+            result.AddRange(items);
+
+            if (result.Count >= totalCount)
+            {
+                break;
+            }
+
+            if (items.Count == 0)
+            {
+                break;
+            }
+
+            page++;
+        }
+
+        return result;
+    }
+
+    private void ApplyFilters()
+    {
+        IEnumerable<Facture> query = allFactures;
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            query = query.Where(f =>
+                (f.NumeroFacture != null && f.NumeroFacture.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                (f.Client != null && f.Client.Nom != null && f.Client.Nom.Contains(term, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        if (dateFrom.HasValue)
+        {
+            var from = dateFrom.Value.Date;
+            query = query.Where(f => f.DateFacture.Date >= from);
+        }
+
+        if (dateTo.HasValue)
+        {
+            var to = dateTo.Value.Date;
+            query = query.Where(f => f.DateFacture.Date <= to);
+        }
+
+        if (int.TryParse(filterClient, out var clientId) && clientId > 0)
+        {
+            query = query.Where(f => f.ClientId == clientId);
+        }
+
+        filteredFactures = query
+            .OrderByDescending(f => f.DateFacture)
+            .ThenByDescending(f => f.Id)
+            .ToList();
+
+        filteredCount = filteredFactures.Count;
+        currentStart = filteredCount == 0 ? 0 : 1;
+        currentEnd = filteredCount;
+    }
+
     private void ClearSearch()
     {
         searchTerm = string.Empty;
+        ApplyFilters();
+    }
+
+    private async Task ValiderAsync(int id)
+    {
+        isBusy = true;
+        summaryMessage = null;
+        summaryIsError = false;
+
+        try
+        {
+            await FactureService.ValiderAsync(id);
+            await LoadPageDataAsync();
+        }
+        catch (Exception ex)
+        {
+            summaryIsError = true;
+            summaryMessage = ex.Message;
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async Task AnnulerAsync(int id)
+    {
+        isBusy = true;
+        summaryMessage = null;
+        summaryIsError = false;
+
+        try
+        {
+            await FactureService.AnnulerAsync(id);
+            await LoadPageDataAsync();
+        }
+        catch (Exception ex)
+        {
+            summaryIsError = true;
+            summaryMessage = ex.Message;
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async Task MarquerPayeeAsync(int id)
+    {
+        isBusy = true;
+        summaryMessage = null;
+        summaryIsError = false;
+
+        try
+        {
+            await FactureService.MarquerPayeeAsync(id);
+            await LoadPageDataAsync();
+        }
+        catch (Exception ex)
+        {
+            summaryIsError = true;
+            summaryMessage = ex.Message;
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async Task DeleteAsync(int id)
+    {
+        isBusy = true;
+        summaryMessage = null;
+        summaryIsError = false;
+
+        try
+        {
+            await FactureService.DeleteAsync(id);
+            await LoadPageDataAsync();
+        }
+        catch (Exception ex)
+        {
+            summaryIsError = true;
+            summaryMessage = ex.Message;
+        }
+        finally
+        {
+            isBusy = false;
+        }
     }
 }
