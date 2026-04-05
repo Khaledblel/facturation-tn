@@ -1,35 +1,71 @@
+.nav-shell {
+    height: 100%;
+    color: #e2e8f0;
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-brand-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    gap: 0.75rem;
+    padding: 1rem 0.9rem 0.85rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    background:
+        radial-gradient(circle at 88% 10%, rgba(16, 185, 129, 0.22), transparent 36%),
+        linear-gradient(160deg, rgba(15, 23, 42, 0.68) 0%, rgba(11, 63, 58, 0.56) 100%);
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-inline: auto;
+    color: #f8fafc;
+    text-decoration: none;
+}
+
+.nav-brand:hover {
+    color: #ffffff;
+}
+
+.nav-brand-logo {
+    width: auto;
+    height: 2.95rem;
+    max-width: 10.5rem;
+    object-fit: contain;
+    border-radius: 0.55rem;
+    padding: 0.22rem 0.34rem;
+    background-color: rgba(248, 250, 252, 0.92);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 6px 14px rgba(2, 6, 23, 0.28);
+    filter: contrast(1.08) saturate(1.12);
+}
+
 .navbar-toggler {
     appearance: none;
     cursor: pointer;
-    width: 3.5rem;
-    height: 2.5rem;
-    color: white;
     position: absolute;
-    top: 0.5rem;
-    right: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.1);
+    right: 0.9rem;
+    width: 2.25rem;
+    height: 2.05rem;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(226, 232, 240, 0.28);
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28248, 250, 252, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.25rem rgba(148, 163, 184, 0.12);
 }
 
 .navbar-toggler:checked {
-    background-color: rgba(255, 255, 255, 0.5);
-}
-
-.top-row {
-    min-height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
-}
-
-.navbar-brand {
-    font-size: 1.1rem;
+    background-color: rgba(148, 163, 184, 0.25);
 }
 
 .bi {
     display: inline-block;
     position: relative;
-    width: 1.25rem;
-    height: 1.25rem;
-    margin-right: 0.75rem;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.6rem;
     top: -1px;
     background-size: cover;
 }
@@ -56,11 +92,11 @@
 
 .nav-item {
     font-size: 0.9rem;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.24rem;
 }
 
     .nav-item:first-of-type {
-        padding-top: 1rem;
+        padding-top: 0.9rem;
     }
 
     .nav-item:last-of-type {
@@ -68,29 +104,38 @@
     }
 
     .nav-item ::deep .nav-link {
-        color: #d7d7d7;
+        color: rgba(226, 232, 240, 0.9);
         background: none;
         border: none;
-        border-radius: 4px;
-        height: 3rem;
+        border-radius: 0.7rem;
+        height: 2.65rem;
         display: flex;
         align-items: center;
-        line-height: 3rem;
+        line-height: 2.65rem;
         width: 100%;
+        font-weight: 620;
+        padding-inline: 0.72rem;
+        transition: background-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
     }
 
 .nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.37);
-    color: white;
+    background:
+        radial-gradient(circle at 90% 10%, rgba(52, 211, 153, 0.34), transparent 40%),
+        linear-gradient(120deg, rgba(15, 118, 110, 0.42) 0%, rgba(37, 99, 235, 0.32) 100%);
+    color: #ffffff;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.22);
 }
 
 .nav-item ::deep .nav-link:hover {
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(148, 163, 184, 0.18);
     color: white;
+    transform: translateX(2px);
 }
 
 .nav-scrollable {
     display: none;
+    padding: 0.25rem 0.6rem 0.95rem;
+    overflow-y: auto;
 }
 
 .navbar-toggler:checked ~ .nav-scrollable {
@@ -103,11 +148,8 @@
     }
 
     .nav-scrollable {
-        /* Never collapse the sidebar for wide screens */
         display: block;
-
-        /* Allow sidebar to scroll for tall menus */
-        height: calc(100vh - 3.5rem);
+        height: calc(100vh - 4.15rem);
         overflow-y: auto;
     }
 }

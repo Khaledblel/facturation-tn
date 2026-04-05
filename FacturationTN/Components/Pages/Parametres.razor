@@ -7,17 +7,26 @@
 
 <PageTitle>Paramètres</PageTitle>
 
-<h1 class="mb-4">Paramètres</h1>
+<div class="parametres-shell">
+<section class="parametres-hero mb-4">
+    <div class="parametres-hero-inner">
+        <div>
+            <p class="parametres-eyebrow mb-2">Configuration globale</p>
+            <h1 class="mb-2 parametres-title">Paramètres</h1>
+            <p class="mb-0 parametres-subtitle">Pilotez les règles fiscales, l'identité de l'entreprise et les informations affichées sur vos factures.</p>
+        </div>
+    </div>
+</section>
 
 <div class="row g-4">
     @* ── Timbre Fiscal ────────────────────────────────────────── *@
     <div class="col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Timbre fiscal</div>
+        <div class="card border-0 shadow-sm h-100 parametres-card">
+            <div class="card-header bg-white fw-semibold parametres-card-header">Timbre fiscal</div>
             <div class="card-body">
                 <div class="mb-3">
-                    <label class="form-label">Montant du timbre fiscal <span class="text-danger">*</span></label>
-                    <div class="input-group">
+                    <label class="form-label parametres-label">Montant du timbre fiscal <span class="text-danger">*</span></label>
+                    <div class="input-group parametres-input-group">
                         <input type="number" class="form-control" step="0.001" min="0"
                                @bind="montantTimbre" />
                         <span class="input-group-text">TND</span>
@@ -26,23 +35,23 @@
                 </div>
                 @if (timbreSaved)
                 {
-                    <div class="alert alert-success alert-dismissible fade show py-2 small" role="alert">
+                    <div class="alert alert-success alert-dismissible fade show py-2 small parametres-inline-alert" role="alert">
                         Timbre fiscal mis à jour avec succès.
                         <button type="button" class="btn-close btn-close-sm" @onclick="() => timbreSaved = false"></button>
                     </div>
                 }
-                <button class="btn btn-primary btn-sm" @onclick="SaveTimbre">Enregistrer</button>
+                <button class="btn btn-primary btn-sm parametres-action-btn" @onclick="SaveTimbre">Enregistrer</button>
             </div>
         </div>
     </div>
 
     @* ── Taux de TVA ──────────────────────────────────────────── *@
     <div class="col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Taux de TVA en vigueur</div>
+        <div class="card border-0 shadow-sm h-100 parametres-card">
+            <div class="card-header bg-white fw-semibold parametres-card-header">Taux de TVA en vigueur</div>
             <div class="card-body">
-                <table class="table table-sm table-hover mb-0">
-                    <thead class="table-light">
+                <table class="table table-sm table-hover mb-0 parametres-table">
+                    <thead>
                         <tr>
                             <th>Libellé</th>
                             <th class="text-end">Taux</th>
@@ -72,7 +81,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <div class="alert alert-info py-2 small mt-3 mb-0">
+                <div class="alert alert-info py-2 small mt-3 mb-0 parametres-info-alert">
                     <strong>ℹ️</strong> Taux définis selon la législation fiscale tunisienne. Modification non autorisée.
                 </div>
             </div>
@@ -83,19 +92,18 @@
 @* ── Informations de l'entreprise ─────────────────────────────── *@
 <div class="row g-4 mt-1">
     <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-semibold">Informations de l'entreprise</div>
+        <div class="card border-0 shadow-sm parametres-card">
+            <div class="card-header bg-white fw-semibold parametres-card-header">Informations de l'entreprise</div>
             <div class="card-body">
                 <div class="row g-3">
                     @* ── Logo Upload ──────────────────────────── *@
                     <div class="col-12 mb-2">
-                        <label class="form-label">Logo de l'entreprise</label>
+                        <label class="form-label parametres-label">Logo de l'entreprise</label>
                         <div class="d-flex align-items-start gap-3">
-                            <div class="logo-preview border rounded d-flex align-items-center justify-content-center"
-                                 style="width: 120px; height: 120px; min-width: 120px; background-color: #f8f9fa; overflow: hidden;">
+                            <div class="logo-preview parametres-logo-preview d-flex align-items-center justify-content-center">
                                 @if (!string.IsNullOrEmpty(logoPreviewUrl))
                                 {
-                                    <img src="@logoPreviewUrl" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+                                    <img src="@logoPreviewUrl" alt="Logo" class="parametres-logo-image" />
                                 }
                                 else
                                 {
@@ -104,7 +112,7 @@
                             </div>
                             <div>
                                 <InputFile OnChange="OnLogoSelected" accept=".png,.jpg,.jpeg,.svg"
-                                           class="form-control form-control-sm" style="max-width: 280px;" />
+                                           class="form-control form-control-sm parametres-logo-input" />
                                 <div class="form-text">PNG, JPG ou SVG. Taille max : 2 Mo. Recommandé : 200×200 px.</div>
                                 @if (!string.IsNullOrEmpty(logoError))
                                 {
@@ -112,39 +120,39 @@
                                 }
                                 @if (!string.IsNullOrEmpty(logoPreviewUrl))
                                 {
-                                    <button class="btn btn-outline-danger btn-sm mt-1" @onclick="RemoveLogo">Supprimer le logo</button>
+                                    <button class="btn btn-outline-danger btn-sm mt-1 parametres-action-btn" @onclick="RemoveLogo">Supprimer le logo</button>
                                 }
                             </div>
                         </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Raison sociale <span class="text-danger">*</span></label>
+                        <label class="form-label parametres-label">Raison sociale <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" placeholder="Nom de votre entreprise"
                                maxlength="50"
                                @bind="entrepriseNom" />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Matricule fiscale <span class="text-danger">*</span></label>
+                        <label class="form-label parametres-label">Matricule fiscale <span class="text-danger">*</span></label>
                            <input type="text" class="form-control" placeholder="0000000/X/X/X000" maxlength="16"
                                value="@entrepriseMatricule"
                                @oninput="OnEntrepriseMatriculeInput" />
                         <div class="form-text">Format tunisien : 7 chiffres / lettre / lettre / lettre + 3 chiffres</div>
                     </div>
                     <div class="col-md-12">
-                        <label class="form-label">Adresse <span class="text-danger">*</span></label>
+                        <label class="form-label parametres-label">Adresse <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" placeholder="Rue, ville, code postal"
                                maxlength="50"
                                @bind="entrepriseAdresse" />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Téléphone</label>
+                        <label class="form-label parametres-label">Téléphone</label>
                         <input type="tel" class="form-control" placeholder="+216 XX XXX XXX"
                                maxlength="20"
                                @bind="entrepriseTel" />
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Email</label>
+                        <label class="form-label parametres-label">Email</label>
                         <input type="email" class="form-control" placeholder="contact@entreprise.tn"
                                maxlength="50"
                                @bind="entrepriseEmail" />
@@ -154,21 +162,22 @@
 
                 @if (entrepriseSaved)
                 {
-                    <div class="alert alert-success alert-dismissible fade show py-2 small" role="alert">
+                    <div class="alert alert-success alert-dismissible fade show py-2 small parametres-inline-alert" role="alert">
                         Informations de l'entreprise mises à jour avec succès.
                         <button type="button" class="btn-close btn-close-sm" @onclick="() => entrepriseSaved = false"></button>
                     </div>
                 }
                 @if (!string.IsNullOrWhiteSpace(entrepriseErrorMessage))
                 {
-                    <div class="alert alert-danger py-2 small" role="alert">
+                    <div class="alert alert-danger py-2 small parametres-inline-alert" role="alert">
                         @entrepriseErrorMessage
                     </div>
                 }
-                <button class="btn btn-primary btn-sm" @onclick="SaveEntreprise">Enregistrer</button>
+                <button class="btn btn-primary btn-sm parametres-action-btn" @onclick="SaveEntreprise">Enregistrer</button>
             </div>
         </div>
     </div>
+</div>
 </div>
 
 @code {

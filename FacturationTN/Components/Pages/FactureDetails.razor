@@ -8,10 +8,10 @@
 
 <PageTitle>Fiche facture</PageTitle>
 
-<div class="facture-details-shell">
+<div class="facture-view-shell">
 @if (isLoading)
 {
-    <div class="card border-0 shadow-sm state-card">
+    <div class="card border-0 shadow-sm facture-view-state-card">
         <div class="card-body py-5 text-center text-muted">
             Chargement de la fiche facture...
         </div>
@@ -19,7 +19,7 @@
 }
 else if (facture is null)
 {
-    <div class="card border-0 shadow-sm state-card">
+    <div class="card border-0 shadow-sm facture-view-state-card">
         <div class="card-body py-5 text-center">
             <h1 class="h4 mb-3">Facture introuvable</h1>
             <p class="text-muted mb-4">La facture demandee n'existe pas ou a ete supprimee.</p>
@@ -29,69 +29,70 @@ else if (facture is null)
 }
 else
 {
-    <section class="hero-panel mb-4">
-        <div class="hero-inner">
+    <section class="facture-view-hero mb-4">
+        <div class="facture-view-hero-inner">
             <div>
-                <p class="eyebrow mb-2">Fiche facture</p>
-                <h1 class="mb-2 details-title">@facture.NumeroFacture</h1>
+                <p class="facture-view-eyebrow mb-2">Fiche facture</p>
+                <h1 class="mb-2 facture-view-title">@facture.NumeroFacture</h1>
                 <div class="d-flex flex-wrap gap-2 align-items-center">
                     <span class="badge @GetStatusBadgeClass(facture.Statut)">@GetStatutLabel(facture.Statut)</span>
-                    <span class="pill-soft">Date: @facture.DateFacture.ToString("dd/MM/yyyy")</span>
+                    <span class="facture-view-soft-pill">Date: @facture.DateFacture.ToString("dd/MM/yyyy")</span>
+                    <span class="facture-view-soft-pill">Client: @DisplayOrDash(facture.Client?.Nom)</span>
                 </div>
             </div>
             <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
-                <a class="btn btn-outline-secondary details-action-btn" href="/factures">Retour</a>
-                <a class="btn btn-primary details-action-btn" href="@($"/factures/{Id}/imprimer")" target="_blank" rel="noopener">Imprimer</a>
+                <a class="btn btn-outline-light facture-view-hero-btn" href="/factures">Retour</a>
+                <a class="btn btn-light facture-view-hero-btn facture-view-print-btn" href="@($"/factures/{Id}/imprimer")" target="_blank" rel="noopener">Imprimer</a>
             </div>
         </div>
     </section>
 
     <div class="row g-3 mb-3">
         <div class="col-12 col-xl-6">
-            <div class="card border-0 shadow-sm details-card h-100">
-                <div class="card-header bg-white fw-semibold section-header">Societe</div>
+            <div class="card border-0 shadow-sm facture-view-card h-100">
+                <div class="card-header bg-white fw-semibold facture-view-card-header">Societe</div>
                 <div class="card-body">
-                    <div class="details-label">Raison sociale</div>
-                    <div class="details-value mb-2">@DisplayOrDash(parametres?.RaisonSociale)</div>
+                    <div class="facture-view-label">Raison sociale</div>
+                    <div class="facture-view-value mb-2">@DisplayOrDash(parametres?.RaisonSociale)</div>
 
-                    <div class="details-label">Matricule fiscale</div>
-                    <div class="details-value mb-2">@DisplayOrDash(parametres?.MatriculeFiscale)</div>
+                    <div class="facture-view-label">Matricule fiscale</div>
+                    <div class="facture-view-value mb-2">@DisplayOrDash(parametres?.MatriculeFiscale)</div>
 
-                    <div class="details-label">Adresse</div>
-                    <div class="details-value details-break mb-2">@DisplayOrDash(parametres?.Adresse)</div>
+                    <div class="facture-view-label">Adresse</div>
+                    <div class="facture-view-value facture-view-break mb-2">@DisplayOrDash(parametres?.Adresse)</div>
 
-                    <div class="details-label">Contact</div>
-                    <div class="details-value">@BuildContactLine(parametres)</div>
+                    <div class="facture-view-label">Contact</div>
+                    <div class="facture-view-value">@BuildContactLine(parametres)</div>
                 </div>
             </div>
         </div>
 
         <div class="col-12 col-xl-6">
-            <div class="card border-0 shadow-sm details-card h-100">
-                <div class="card-header bg-white fw-semibold section-header">Client facture</div>
+            <div class="card border-0 shadow-sm facture-view-card h-100">
+                <div class="card-header bg-white fw-semibold facture-view-card-header">Client facture</div>
                 <div class="card-body">
-                    <div class="details-label">Nom / Raison sociale</div>
-                    <div class="details-value mb-2">@DisplayOrDash(facture.Client?.Nom)</div>
+                    <div class="facture-view-label">Nom / Raison sociale</div>
+                    <div class="facture-view-value mb-2">@DisplayOrDash(facture.Client?.Nom)</div>
 
-                    <div class="details-label">Matricule fiscale</div>
-                    <div class="details-value mb-2">@DisplayOrDash(facture.Client?.MatriculeFiscale)</div>
+                    <div class="facture-view-label">Matricule fiscale</div>
+                    <div class="facture-view-value mb-2">@DisplayOrDash(facture.Client?.MatriculeFiscale)</div>
 
-                    <div class="details-label">Adresse</div>
-                    <div class="details-value details-break mb-2">@FormatAddress(facture.Client)</div>
+                    <div class="facture-view-label">Adresse</div>
+                    <div class="facture-view-value facture-view-break mb-2">@FormatAddress(facture.Client)</div>
 
-                    <div class="details-label">Contact</div>
-                    <div class="details-value">@BuildClientContactLine(facture.Client)</div>
+                    <div class="facture-view-label">Contact</div>
+                    <div class="facture-view-value">@BuildClientContactLine(facture.Client)</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm details-card mb-3">
-        <div class="card-header bg-white fw-semibold section-header">Lignes de facture</div>
+    <div class="card border-0 shadow-sm facture-view-card mb-3">
+        <div class="card-header bg-white fw-semibold facture-view-card-header">Lignes de facture</div>
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light">
+                <table class="table align-middle mb-0 facture-view-table">
+                    <thead>
                         <tr>
                             <th>Désignation</th>
                             <th class="text-center" style="width: 90px;">Qté</th>
@@ -127,10 +128,10 @@ else
 
     <div class="row justify-content-end">
         <div class="col-12 col-lg-5">
-            <div class="card border-0 shadow-sm details-card">
-                <div class="card-header bg-white fw-semibold section-header">Totaux</div>
+            <div class="card border-0 shadow-sm facture-view-card facture-view-totals-card">
+                <div class="card-header bg-white fw-semibold facture-view-card-header">Totaux</div>
                 <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
+                    <table class="table table-sm mb-0 facture-view-totals-table">
                         <tbody>
                             <tr>
                                 <td class="ps-3">Total HT</td>
@@ -144,7 +145,7 @@ else
                                 <td class="ps-3">Timbre fiscal</td>
                                 <td class="text-end pe-3">@facture.TimbreFiscal.ToString("N3") TND</td>
                             </tr>
-                            <tr class="table-dark">
+                            <tr class="facture-view-total-ttc-row">
                                 <td class="ps-3 fw-bold">TOTAL TTC</td>
                                 <td class="text-end pe-3 fw-bold fs-5">@facture.TotalTTC.ToString("N3") TND</td>
                             </tr>

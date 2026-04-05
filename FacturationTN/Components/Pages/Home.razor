@@ -8,128 +8,139 @@
 
 <PageTitle>Tableau de bord</PageTitle>
 
-<h1 class="mb-4">Tableau de bord</h1>
+<div class="dashboard-top mb-4">
+<section class="dashboard-hero mb-4">
+    <div class="dashboard-hero-inner">
+        <div>
+            <p class="dashboard-eyebrow mb-2">Vue d'ensemble</p>
+            <h1 class="mb-2 dashboard-title">Tableau de bord</h1>
+            <p class="mb-0 dashboard-subtitle">Suivez instantanément la performance commerciale et la santé de la facturation.</p>
+        </div>
+    </div>
+</section>
 
 @* ═══════════════════════════════════════════════════════════════ *@
 @* TOP KPI SUMMARY CARDS                                          *@
 @* ═══════════════════════════════════════════════════════════════ *@
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4 dashboard-kpi-grid">
     <div class="col-xl col-md-4 col-sm-6">
-        <div class="card kpi-card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 dashboard-kpi-card dashboard-kpi-primary">
             <div class="card-body">
-                <div class="text-muted small text-uppercase fw-semibold">Chiffre d'affaires TTC</div>
-                <div class="fs-4 fw-bold text-primary mt-1">@totalTtc.ToString("N3") <span class="fs-6 fw-normal">TND</span></div>
+                <div class="dashboard-kpi-label">Chiffre d'affaires TTC</div>
+                <div class="dashboard-kpi-value mt-1">@totalTtc.ToString("N3") <span class="dashboard-kpi-unit">TND</span></div>
             </div>
         </div>
     </div>
     <div class="col-xl col-md-4 col-sm-6">
-        <div class="card kpi-card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 dashboard-kpi-card dashboard-kpi-success">
             <div class="card-body">
-                <div class="text-muted small text-uppercase fw-semibold">Chiffre d'affaires HT</div>
-                <div class="fs-4 fw-bold text-success mt-1">@totalHt.ToString("N3") <span class="fs-6 fw-normal">TND</span></div>
+                <div class="dashboard-kpi-label">Chiffre d'affaires HT</div>
+                <div class="dashboard-kpi-value mt-1">@totalHt.ToString("N3") <span class="dashboard-kpi-unit">TND</span></div>
             </div>
         </div>
     </div>
     <div class="col-xl col-md-4 col-sm-6">
-        <div class="card kpi-card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 dashboard-kpi-card dashboard-kpi-warning">
             <div class="card-body">
-                <div class="text-muted small text-uppercase fw-semibold">TVA totale collectée</div>
-                <div class="fs-4 fw-bold text-warning mt-1">@totalTva.ToString("N3") <span class="fs-6 fw-normal">TND</span></div>
+                <div class="dashboard-kpi-label">TVA totale collectée</div>
+                <div class="dashboard-kpi-value mt-1">@totalTva.ToString("N3") <span class="dashboard-kpi-unit">TND</span></div>
             </div>
         </div>
     </div>
     <div class="col-xl col-md-4 col-sm-6">
-        <div class="card kpi-card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 dashboard-kpi-card dashboard-kpi-danger">
             <div class="card-body">
-                <div class="text-muted small text-uppercase fw-semibold">Timbre fiscal total</div>
-                <div class="fs-4 fw-bold text-danger mt-1">@totalTimbre.ToString("N3") <span class="fs-6 fw-normal">TND</span></div>
+                <div class="dashboard-kpi-label">Timbre fiscal total</div>
+                <div class="dashboard-kpi-value mt-1">@totalTimbre.ToString("N3") <span class="dashboard-kpi-unit">TND</span></div>
             </div>
         </div>
     </div>
     <div class="col-xl col-md-4 col-sm-6">
-        <div class="card kpi-card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 dashboard-kpi-card dashboard-kpi-info">
             <div class="card-body">
-                <div class="text-muted small text-uppercase fw-semibold">Nombre de factures</div>
-                <div class="fs-4 fw-bold text-info mt-1">@totalFactures</div>
+                <div class="dashboard-kpi-label">Nombre de factures</div>
+                <div class="dashboard-kpi-value mt-1">@totalFactures</div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-4 dashboard-kpi-grid">
     <div class="col-xl col-md-4 col-sm-6">
-        <div class="card kpi-card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 dashboard-kpi-card dashboard-kpi-primary">
             <div class="card-body">
-                <div class="text-muted small text-uppercase fw-semibold">Factures validées</div>
-                <div class="fs-4 fw-bold text-primary mt-1">@validatedFactures <span class="fs-6 fw-normal">factures</span></div>
+                <div class="dashboard-kpi-label">Factures validées</div>
+                <div class="dashboard-kpi-value mt-1">@validatedFactures <span class="dashboard-kpi-unit">factures</span></div>
             </div>
         </div>
     </div>
     <div class="col-xl col-md-4 col-sm-6">
-        <div class="card kpi-card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 dashboard-kpi-card dashboard-kpi-success">
             <div class="card-body">
-                <div class="text-muted small text-uppercase fw-semibold">Factures payées</div>
-                <div class="fs-4 fw-bold text-success mt-1">@paidFactures <span class="fs-6 fw-normal">factures</span></div>
+                <div class="dashboard-kpi-label">Factures payées</div>
+                <div class="dashboard-kpi-value mt-1">@paidFactures <span class="dashboard-kpi-unit">factures</span></div>
             </div>
         </div>
     </div>
     <div class="col-xl col-md-4 col-sm-6">
-        <div class="card kpi-card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 dashboard-kpi-card dashboard-kpi-warning">
             <div class="card-body">
-                <div class="text-muted small text-uppercase fw-semibold">Clients actifs</div>
-                <div class="fs-4 fw-bold text-warning mt-1">@activeClients <span class="fs-6 fw-normal">clients</span></div>
+                <div class="dashboard-kpi-label">Clients actifs</div>
+                <div class="dashboard-kpi-value mt-1">@activeClients <span class="dashboard-kpi-unit">clients</span></div>
             </div>
         </div>
     </div>
     <div class="col-xl col-md-4 col-sm-6">
-        <div class="card kpi-card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 dashboard-kpi-card dashboard-kpi-danger">
             <div class="card-body">
-                <div class="text-muted small text-uppercase fw-semibold">Produits vendus</div>
-                <div class="fs-4 fw-bold text-danger mt-1">@soldProducts <span class="fs-6 fw-normal">produits</span></div>
+                <div class="dashboard-kpi-label">Produits vendus</div>
+                <div class="dashboard-kpi-value mt-1">@soldProducts <span class="dashboard-kpi-unit">produits</span></div>
             </div>
         </div>
     </div>
+</div>
 </div>
 
 @* ═══════════════════════════════════════════════════════════════ *@
 @* RAPIDE : MOIS EN COURS                                        *@
 @* ═══════════════════════════════════════════════════════════════ *@
+<div class="dashboard-middle">
 <div class="row g-3 mb-4">
     <div class="col-lg-3 col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">@currentMonthLabel</div>
+        <div class="card border-0 shadow-sm h-100 dashboard-mid-card dashboard-month-card">
+            <div class="card-header bg-white fw-semibold dashboard-mid-header">@currentMonthLabel</div>
             <div class="card-body text-center">
-                <div class="text-muted small text-uppercase">Factures ce mois</div>
-                <div class="fs-4 fw-bold mt-1">@monthFactures</div>
-                <div class="text-muted small text-uppercase mt-3">CA HT</div>
-                <div class="fs-5 fw-bold text-success">@monthHt.ToString("N3") TND</div>
-                <div class="text-muted small text-uppercase mt-2">CA TTC</div>
-                <div class="fs-5 fw-bold text-primary">@monthTtc.ToString("N3") TND</div>
+                <div class="dashboard-stat-label">Factures ce mois</div>
+                <div class="dashboard-month-count mt-1">@monthFactures</div>
+                <div class="dashboard-stat-label mt-3">CA HT</div>
+                <div class="dashboard-month-value dashboard-month-value-ht">@monthHt.ToString("N3") TND</div>
+                <div class="dashboard-stat-label mt-2">CA TTC</div>
+                <div class="dashboard-month-value dashboard-month-value-ttc">@monthTtc.ToString("N3") TND</div>
             </div>
         </div>
     </div>
     <div class="col-lg-9 col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Synthèse des statuts</div>
+        <div class="card border-0 shadow-sm h-100 dashboard-mid-card dashboard-status-card">
+            <div class="card-header bg-white fw-semibold dashboard-mid-header">Synthèse des statuts</div>
             <div class="card-body">
                 <div class="row text-center">
                     <div class="col-sm-4 mb-2">
-                        <div class="text-muted small">Validées</div>
-                        <div class="fs-5 fw-bold text-primary">@validatedFactures</div>
+                        <div class="dashboard-stat-label">Validées</div>
+                        <div class="dashboard-stat-value dashboard-stat-value-primary">@validatedFactures</div>
                     </div>
                     <div class="col-sm-4 mb-2">
-                        <div class="text-muted small">Payées</div>
-                        <div class="fs-5 fw-bold text-success">@paidFactures</div>
+                        <div class="dashboard-stat-label">Payées</div>
+                        <div class="dashboard-stat-value dashboard-stat-value-success">@paidFactures</div>
                     </div>
                     <div class="col-sm-4 mb-2">
-                        <div class="text-muted small">Clients actifs</div>
-                        <div class="fs-5 fw-bold text-warning">@activeClients</div>
+                        <div class="dashboard-stat-label">Clients actifs</div>
+                        <div class="dashboard-stat-value dashboard-stat-value-warning">@activeClients</div>
                     </div>
                 </div>
-                <div class="progress mt-3" style="height:10px;">
+                <div class="progress mt-3 dashboard-paid-progress" style="height:10px;">
                     <div class="progress-bar bg-success" role="progressbar" style="width:@(totalFactures == 0 ? 0 : (int)Math.Min(100, (decimal)paidFactures * 100 / totalFactures))%" aria-valuenow="@(totalFactures == 0 ? 0 : (int)Math.Min(100, (decimal)paidFactures * 100 / totalFactures))" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
-                <div class="text-end small text-muted mt-1">% de factures payées</div>
+                <div class="text-end small text-muted mt-1 dashboard-progress-label">% de factures payées</div>
             </div>
         </div>
     </div>
@@ -138,14 +149,14 @@
 @* ═══════════════════════════════════════════════════════════════ *@
 @* TABLEAU DE BORD FISCAL                                         *@
 @* ═══════════════════════════════════════════════════════════════ *@
-<h4 class="mb-3">Tableau de bord fiscal</h4>
+<h4 class="mb-3 dashboard-section-title">Tableau de bord fiscal</h4>
 <div class="row g-3 mb-4">
     <div class="col-lg-7">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">TVA par taux</div>
+        <div class="card border-0 shadow-sm h-100 dashboard-mid-card">
+            <div class="card-header bg-white fw-semibold dashboard-mid-header">TVA par taux</div>
             <div class="card-body">
-                <table class="table table-sm table-hover mb-0">
-                    <thead class="table-light">
+                <table class="table table-sm table-hover mb-0 dashboard-table">
+                    <thead>
                         <tr>
                             <th>Taux TVA</th>
                             <th class="text-end">Base HT</th>
@@ -162,7 +173,7 @@
                             </tr>
                         }
                     </tbody>
-                    <tfoot class="table-light fw-bold">
+                    <tfoot class="fw-bold dashboard-table-foot">
                         <tr>
                             <td>Total</td>
                             <td class="text-end">@totalBaseHt.ToString("N3") TND</td>
@@ -174,17 +185,17 @@
         </div>
     </div>
     <div class="col-lg-5">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Détail timbre fiscal</div>
+        <div class="card border-0 shadow-sm h-100 dashboard-mid-card">
+            <div class="card-header bg-white fw-semibold dashboard-mid-header">Détail timbre fiscal</div>
             <div class="card-body d-flex flex-column justify-content-center">
-                <div class="chart-placeholder d-flex align-items-center justify-content-center">
+                <div class="chart-placeholder dashboard-chart-box d-flex align-items-center justify-content-center">
                     <div style="width:100%; padding:12px;">
                         @foreach (var row in tvaByRate)
                         {
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <div style="width:52px;">@row.Taux %</div>
                                 <div class="flex-grow-1" style="height:10px; background:#e9ecef; border-radius:6px;">
-                                    <div style="height:100%; width:@GetBarWidth(row.MontantTva)%; background:#ffc107; border-radius:6px;"></div>
+                                    <div style="height:100%; width:@GetBarWidth(row.MontantTva)%; background:#f59e0b; border-radius:6px;"></div>
                                 </div>
                                 <div style="width:110px; text-align:right;">
                                     @row.MontantTva.ToString("N3")
@@ -196,41 +207,43 @@
                 <hr />
                 <div class="row text-center">
                     <div class="col">
-                        <div class="text-muted small">Montant unitaire</div>
-                        <div class="fw-bold">@timbreUnitaire.ToString("N3") TND</div>
+                        <div class="dashboard-stat-label">Montant unitaire</div>
+                        <div class="fw-bold dashboard-stat-inline">@timbreUnitaire.ToString("N3") TND</div>
                     </div>
                     <div class="col">
-                        <div class="text-muted small">Factures concernées</div>
-                        <div class="fw-bold">@nbFacturesTimbre</div>
+                        <div class="dashboard-stat-label">Factures concernées</div>
+                        <div class="fw-bold dashboard-stat-inline">@nbFacturesTimbre</div>
                     </div>
                     <div class="col">
-                        <div class="text-muted small">Total timbre</div>
-                        <div class="fw-bold">@totalTimbre.ToString("N3") TND</div>
+                        <div class="dashboard-stat-label">Total timbre</div>
+                        <div class="fw-bold dashboard-stat-inline">@totalTimbre.ToString("N3") TND</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+</div>
 
 @* ═══════════════════════════════════════════════════════════════ *@
 @* TABLEAU DE BORD VENTES                                         *@
 @* ═══════════════════════════════════════════════════════════════ *@
-<h4 class="mb-3">Tableau de bord ventes</h4>
+<div class="dashboard-sales">
+<h4 class="mb-3 dashboard-section-title">Tableau de bord ventes</h4>
 
 @* CA par période *@
 <div class="row g-3 mb-4">
     <div class="col-12">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+        <div class="card border-0 shadow-sm dashboard-sales-card">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center dashboard-sales-header">
                 Chiffre d'affaires par période
-                <div>
-                    <button class="btn btn-sm @(selectedPeriodView == "HT" ? "btn-primary" : "btn-outline-primary")" @onclick='() => selectedPeriodView = "HT"'>HT</button>
-                    <button class="btn btn-sm @(selectedPeriodView == "TTC" ? "btn-primary" : "btn-outline-primary")" @onclick='() => selectedPeriodView = "TTC"'>TTC</button>
+                <div class="dashboard-sales-toggle">
+                    <button class="btn btn-sm dashboard-sales-toggle-btn @(selectedPeriodView == "HT" ? "btn-primary" : "btn-outline-primary")" @onclick='() => selectedPeriodView = "HT"'>HT</button>
+                    <button class="btn btn-sm dashboard-sales-toggle-btn @(selectedPeriodView == "TTC" ? "btn-primary" : "btn-outline-primary")" @onclick='() => selectedPeriodView = "TTC"'>TTC</button>
                 </div>
             </div>
             <div class="card-body">
-                <div class="chart-placeholder chart-placeholder-lg d-flex align-items-center justify-content-center">
+                <div class="chart-placeholder chart-placeholder-lg dashboard-sales-chart d-flex align-items-center justify-content-center">
                     <div style="width:100%; padding:12px;">
                         @if (caByMonth.Count == 0)
                         {
@@ -244,7 +257,7 @@
                                 <div class="d-flex align-items-center gap-2 mb-2">
                                     <div style="width:90px;">@m.Mois</div>
                                     <div class="flex-grow-1" style="height:10px; background:#e9ecef; border-radius:6px;">
-                                        <div style="height:100%; width:@GetMonthlyBarWidth(value)%; background:#0d6efd; border-radius:6px;"></div>
+                                        <div style="height:100%; width:@GetMonthlyBarWidth(value)%; background:#2563eb; border-radius:6px;"></div>
                                     </div>
                                     <div style="width:110px; text-align:right;">
                                         @value.ToString("N3")
@@ -262,11 +275,11 @@
 @* CA par client & CA par produit *@
 <div class="row g-3 mb-4">
     <div class="col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Chiffre d'affaires par client</div>
+        <div class="card border-0 shadow-sm h-100 dashboard-sales-card">
+            <div class="card-header bg-white fw-semibold dashboard-sales-header">Chiffre d'affaires par client</div>
             <div class="card-body">
-                <table class="table table-sm table-hover mb-0">
-                    <thead class="table-light">
+                <table class="table table-sm table-hover mb-0 dashboard-sales-table">
+                    <thead>
                         <tr>
                             <th>Client</th>
                             <th class="text-end">CA HT</th>
@@ -297,11 +310,11 @@
         </div>
     </div>
     <div class="col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Chiffre d'affaires par produit</div>
+        <div class="card border-0 shadow-sm h-100 dashboard-sales-card">
+            <div class="card-header bg-white fw-semibold dashboard-sales-header">Chiffre d'affaires par produit</div>
             <div class="card-body">
-                <table class="table table-sm table-hover mb-0">
-                    <thead class="table-light">
+                <table class="table table-sm table-hover mb-0 dashboard-sales-table">
+                    <thead>
                         <tr>
                             <th>Produit</th>
                             <th class="text-end">CA HT</th>
@@ -331,6 +344,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 @code {

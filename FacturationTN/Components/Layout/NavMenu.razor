@@ -1,42 +1,49 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">FacturationTN</a>
+﻿<aside class="nav-shell">
+    <div class="nav-brand-wrap">
+        <a class="nav-brand" href="" aria-label="Accueil FacturationTN">
+            <img class="nav-brand-logo" src="/images/logo.png" alt="Logo FacturationTN" />
+        </a>
+
+        <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
     </div>
-</div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+    <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+        <nav class="nav nav-main flex-column">
+            <div class="nav-item px-2">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
+                    <span>Tableau de bord</span>
+                </NavLink>
+            </div>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Tableau de bord
-            </NavLink>
-        </div>
+            <div class="nav-item px-2">
+                <NavLink class="nav-link" href="clients">
+                    <span class="bi bi-people-nav-menu" aria-hidden="true"></span>
+                    <span>Clients</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="clients">
-                <span class="bi bi-people-nav-menu" aria-hidden="true"></span> Clients
-            </NavLink>
-        </div>
+            <div class="nav-item px-2">
+                <NavLink class="nav-link" href="produits">
+                    <span class="bi bi-box-nav-menu" aria-hidden="true"></span>
+                    <span>Produits</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="produits">
-                <span class="bi bi-box-nav-menu" aria-hidden="true"></span> Produits
-            </NavLink>
-        </div>
+            <div class="nav-item px-2">
+                <NavLink class="nav-link" href="factures">
+                    <span class="bi bi-receipt-nav-menu" aria-hidden="true"></span>
+                    <span>Factures</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="factures">
-                <span class="bi bi-receipt-nav-menu" aria-hidden="true"></span> Factures
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="parametres">
-                <span class="bi bi-gear-nav-menu" aria-hidden="true"></span> Paramètres
-            </NavLink>
-        </div>
-    </nav>
-</div>
+            <div class="nav-item px-2">
+                <NavLink class="nav-link" href="parametres">
+                    <span class="bi bi-gear-nav-menu" aria-hidden="true"></span>
+                    <span>Paramètres</span>
+                </NavLink>
+            </div>
+        </nav>
+    </div>
+</aside>
 

@@ -1,0 +1,200 @@
+.facture-create-shell {
+    --fc-card-bg: #ffffff;
+    --fc-text-main: #0f172a;
+    --fc-text-muted: #475569;
+    --fc-stroke: rgba(15, 23, 42, 0.09);
+    --fc-accent: #0f766e;
+    font-family: "Segoe UI Variable Display", "Trebuchet MS", "Gill Sans", sans-serif;
+    color: var(--fc-text-main);
+}
+
+.facture-create-hero {
+    border-radius: 1rem;
+    background:
+        radial-gradient(circle at 86% 11%, rgba(16, 185, 129, 0.24), transparent 35%),
+        radial-gradient(circle at 11% 92%, rgba(245, 158, 11, 0.19), transparent 36%),
+        linear-gradient(130deg, #0f172a 0%, #134e4a 46%, #0b3f3a 100%);
+    color: #e8faf4;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.24);
+    overflow: hidden;
+}
+
+.facture-create-hero-inner {
+    padding: 1.35rem 1.4rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.facture-create-eyebrow {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    color: rgba(232, 250, 244, 0.82);
+}
+
+.facture-create-title {
+    line-height: 1.14;
+    letter-spacing: -0.015em;
+    font-weight: 750;
+}
+
+.facture-create-subtitle {
+    font-size: 0.93rem;
+    color: rgba(232, 250, 244, 0.88);
+}
+
+.facture-create-hero-btn {
+    border-radius: 0.7rem;
+    border-color: rgba(232, 250, 244, 0.52);
+    color: #ecfdf5;
+    background: rgba(232, 250, 244, 0.06);
+}
+
+.facture-create-hero-btn:hover {
+    border-color: rgba(232, 250, 244, 0.8);
+    background: rgba(232, 250, 244, 0.14);
+    color: #ffffff;
+}
+
+.facture-create-alert {
+    border-radius: 0.85rem;
+    border: 1px solid var(--fc-stroke);
+}
+
+.facture-create-card {
+    background: var(--fc-card-bg);
+    border: 1px solid var(--fc-stroke);
+    border-radius: 0.9rem;
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07) !important;
+}
+
+.facture-create-card-header {
+    background:
+        radial-gradient(circle at 92% 8%, rgba(15, 118, 110, 0.12), transparent 35%),
+        linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%) !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.09);
+    color: #0f172a;
+}
+
+.facture-create-label {
+    font-weight: 620;
+    color: #334155;
+}
+
+.facture-create-readonly {
+    background: linear-gradient(180deg, #fbfdff 0%, #f6fbff 100%) !important;
+}
+
+.facture-create-shell .form-control,
+.facture-create-shell .form-select,
+.facture-create-shell .input-group-text {
+    border-color: rgba(15, 118, 110, 0.2);
+}
+
+.facture-create-shell .form-control:focus,
+.facture-create-shell .form-select:focus {
+    border-color: rgba(15, 118, 110, 0.5);
+    box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.15);
+}
+
+.facture-create-add-line {
+    border-radius: 0.65rem;
+    font-weight: 640;
+}
+
+.facture-create-table thead th {
+    background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+    color: #334155;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 750;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    white-space: nowrap;
+}
+
+.facture-create-table tbody td {
+    border-color: rgba(15, 23, 42, 0.06);
+}
+
+.facture-create-empty {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+.facture-create-tva-badge {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.facture-create-delete-line {
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(220, 38, 38, 0.36);
+    color: #b42318;
+    background: rgba(220, 38, 38, 0.07);
+}
+
+.facture-create-delete-line:hover {
+    color: #8f1c14;
+    border-color: rgba(220, 38, 38, 0.52);
+    background: rgba(220, 38, 38, 0.15);
+}
+
+.facture-create-delete-icon {
+    width: 0.92rem;
+    height: 0.92rem;
+}
+
+.facture-create-totals-card {
+    border-color: rgba(15, 118, 110, 0.22);
+}
+
+.facture-create-totals-table td {
+    border-color: rgba(15, 23, 42, 0.06);
+}
+
+.facture-create-total-ttc-row {
+    background:
+        radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.18), transparent 45%),
+        linear-gradient(120deg, #0f172a 0%, #134e4a 48%, #0b3f3a 100%);
+    color: #f0fdfa;
+}
+
+.facture-create-actions {
+    padding-top: 0.2rem;
+}
+
+.facture-create-action-btn {
+    border-radius: 0.68rem;
+    font-weight: 650;
+    min-width: 10.5rem;
+}
+
+@media (max-width: 991.98px) {
+    .facture-create-hero-inner {
+        padding: 1.15rem 1.05rem;
+    }
+
+    .facture-create-title {
+        font-size: 1.55rem;
+    }
+
+    .facture-create-action-btn {
+        min-width: auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .facture-create-actions {
+        flex-direction: column-reverse;
+        align-items: stretch !important;
+    }
+}

@@ -1,0 +1,144 @@
+.parametres-shell {
+    --pm-card-bg: #ffffff;
+    --pm-text-main: #0f172a;
+    --pm-stroke: rgba(15, 23, 42, 0.09);
+    --pm-accent: #0f766e;
+    font-family: "Segoe UI Variable Display", "Trebuchet MS", "Gill Sans", sans-serif;
+    color: var(--pm-text-main);
+}
+
+.parametres-hero {
+    border-radius: 1rem;
+    background:
+        radial-gradient(circle at 86% 11%, rgba(16, 185, 129, 0.24), transparent 35%),
+        radial-gradient(circle at 11% 92%, rgba(245, 158, 11, 0.19), transparent 36%),
+        linear-gradient(130deg, #0f172a 0%, #134e4a 46%, #0b3f3a 100%);
+    color: #e8faf4;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.24);
+    overflow: hidden;
+}
+
+.parametres-hero-inner {
+    padding: 1.35rem 1.4rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.parametres-eyebrow {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    color: rgba(232, 250, 244, 0.82);
+}
+
+.parametres-title {
+    line-height: 1.14;
+    letter-spacing: -0.015em;
+    font-weight: 750;
+}
+
+.parametres-subtitle {
+    font-size: 0.93rem;
+    color: rgba(232, 250, 244, 0.88);
+    max-width: 70ch;
+}
+
+.parametres-card {
+    background: var(--pm-card-bg);
+    border: 1px solid var(--pm-stroke);
+    border-radius: 0.9rem;
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07) !important;
+}
+
+.parametres-card-header {
+    background:
+        radial-gradient(circle at 92% 8%, rgba(15, 118, 110, 0.12), transparent 35%),
+        linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%) !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.09);
+    color: #0f172a;
+}
+
+.parametres-label {
+    font-weight: 620;
+    color: #334155;
+}
+
+.parametres-input-group .form-control,
+.parametres-input-group .input-group-text {
+    border-color: rgba(15, 118, 110, 0.24);
+}
+
+.parametres-shell .form-control,
+.parametres-shell .form-select,
+.parametres-shell .input-group-text {
+    border-color: rgba(15, 118, 110, 0.2);
+}
+
+.parametres-shell .form-control:focus,
+.parametres-shell .form-select:focus {
+    border-color: rgba(15, 118, 110, 0.5);
+    box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.15);
+}
+
+.parametres-action-btn {
+    border-radius: 0.64rem;
+    font-weight: 640;
+}
+
+.parametres-table thead th {
+    background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+    color: #334155;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 750;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.parametres-table tbody td {
+    border-color: rgba(15, 23, 42, 0.06);
+}
+
+.parametres-info-alert {
+    border-radius: 0.7rem;
+    border-color: rgba(14, 165, 233, 0.28);
+}
+
+.parametres-inline-alert {
+    border-radius: 0.7rem;
+}
+
+.parametres-logo-preview {
+    width: 120px;
+    height: 120px;
+    min-width: 120px;
+    background: linear-gradient(180deg, #f8fbff 0%, #f3f7ff 100%);
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.parametres-logo-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.parametres-logo-input {
+    max-width: 280px;
+}
+
+@media (max-width: 991.98px) {
+    .parametres-hero-inner {
+        padding: 1.15rem 1.05rem;
+    }
+
+    .parametres-title {
+        font-size: 1.55rem;
+    }
+}

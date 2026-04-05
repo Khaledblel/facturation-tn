@@ -1,0 +1,282 @@
+.dashboard-top {
+    --db-text-main: #0f172a;
+    --db-stroke: rgba(15, 23, 42, 0.09);
+    font-family: "Segoe UI Variable Display", "Trebuchet MS", "Gill Sans", sans-serif;
+    color: var(--db-text-main);
+}
+
+.dashboard-hero {
+    border-radius: 1rem;
+    background:
+        radial-gradient(circle at 86% 11%, rgba(16, 185, 129, 0.24), transparent 35%),
+        radial-gradient(circle at 11% 92%, rgba(245, 158, 11, 0.19), transparent 36%),
+        linear-gradient(130deg, #0f172a 0%, #134e4a 46%, #0b3f3a 100%);
+    color: #e8faf4;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.24);
+    overflow: hidden;
+}
+
+.dashboard-hero-inner {
+    padding: 1.35rem 1.4rem;
+}
+
+.dashboard-eyebrow {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    color: rgba(232, 250, 244, 0.82);
+}
+
+.dashboard-title {
+    line-height: 1.14;
+    letter-spacing: -0.015em;
+    font-weight: 750;
+}
+
+.dashboard-subtitle {
+    font-size: 0.93rem;
+    color: rgba(232, 250, 244, 0.88);
+    max-width: 70ch;
+}
+
+.dashboard-kpi-card {
+    border: 1px solid var(--db-stroke);
+    border-radius: 0.9rem;
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07) !important;
+    border-left: 4px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dashboard-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12) !important;
+}
+
+.dashboard-kpi-primary {
+    border-left-color: #2563eb;
+}
+
+.dashboard-kpi-success {
+    border-left-color: #16a34a;
+}
+
+.dashboard-kpi-warning {
+    border-left-color: #f59e0b;
+}
+
+.dashboard-kpi-danger {
+    border-left-color: #dc2626;
+}
+
+.dashboard-kpi-info {
+    border-left-color: #0ea5e9;
+}
+
+.dashboard-kpi-label {
+    color: #64748b;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+
+.dashboard-kpi-value {
+    color: #0f172a;
+    font-size: 1.58rem;
+    font-weight: 760;
+    line-height: 1.15;
+}
+
+.dashboard-kpi-unit {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.dashboard-middle {
+    --db-mid-stroke: rgba(15, 23, 42, 0.09);
+    --db-mid-soft: #64748b;
+}
+
+.dashboard-mid-card {
+    border: 1px solid var(--db-mid-stroke);
+    border-radius: 0.9rem;
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07) !important;
+}
+
+.dashboard-mid-header {
+    background:
+        radial-gradient(circle at 92% 8%, rgba(15, 118, 110, 0.12), transparent 35%),
+        linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%) !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.09);
+    color: #0f172a;
+    letter-spacing: 0.03em;
+}
+
+.dashboard-month-card {
+    border-color: rgba(37, 99, 235, 0.22);
+}
+
+.dashboard-status-card {
+    border-color: rgba(22, 163, 74, 0.22);
+}
+
+.dashboard-stat-label {
+    color: var(--db-mid-soft);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 700;
+}
+
+.dashboard-month-count {
+    font-size: 1.75rem;
+    line-height: 1.12;
+    font-weight: 760;
+    color: #0f172a;
+}
+
+.dashboard-month-value {
+    font-size: 1.14rem;
+    line-height: 1.2;
+    font-weight: 740;
+}
+
+.dashboard-month-value-ht {
+    color: #166534;
+}
+
+.dashboard-month-value-ttc {
+    color: #1d4ed8;
+}
+
+.dashboard-stat-value {
+    font-size: 1.24rem;
+    line-height: 1.18;
+    font-weight: 760;
+}
+
+.dashboard-stat-value-primary {
+    color: #2563eb;
+}
+
+.dashboard-stat-value-success {
+    color: #16a34a;
+}
+
+.dashboard-stat-value-warning {
+    color: #d97706;
+}
+
+.dashboard-paid-progress {
+    background: #e6f7ef;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.dashboard-progress-label {
+    letter-spacing: 0.04em;
+}
+
+.dashboard-section-title {
+    color: #0f172a;
+    font-weight: 730;
+    letter-spacing: -0.01em;
+}
+
+.dashboard-table thead th {
+    background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+    color: #334155;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 750;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-table tbody td,
+.dashboard-table tfoot td {
+    border-color: rgba(15, 23, 42, 0.06);
+}
+
+.dashboard-table-foot {
+    background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+}
+
+.dashboard-chart-box {
+    border-color: rgba(15, 118, 110, 0.22);
+    background: linear-gradient(180deg, #f7fcff 0%, #f8fafc 100%);
+}
+
+.dashboard-stat-inline {
+    color: #0f172a;
+    font-size: 1.03rem;
+}
+
+.dashboard-sales {
+    --db-sales-stroke: rgba(15, 23, 42, 0.09);
+}
+
+.dashboard-sales-card {
+    border: 1px solid var(--db-sales-stroke);
+    border-radius: 0.9rem;
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07) !important;
+}
+
+.dashboard-sales-header {
+    background:
+        radial-gradient(circle at 92% 8%, rgba(37, 99, 235, 0.12), transparent 35%),
+        linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%) !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.09);
+    color: #0f172a;
+    letter-spacing: 0.03em;
+}
+
+.dashboard-sales-toggle {
+    display: inline-flex;
+    gap: 0.35rem;
+}
+
+.dashboard-sales-toggle-btn {
+    min-width: 3.1rem;
+    border-radius: 0.62rem;
+    font-weight: 650;
+}
+
+.dashboard-sales-chart {
+    border-color: rgba(37, 99, 235, 0.22);
+    background: linear-gradient(180deg, #f6faff 0%, #f8fafc 100%);
+}
+
+.dashboard-sales-table thead th {
+    background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+    color: #334155;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 750;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-sales-table tbody td {
+    border-color: rgba(15, 23, 42, 0.06);
+}
+
+@media (max-width: 991.98px) {
+    .dashboard-hero-inner {
+        padding: 1.15rem 1.05rem;
+    }
+
+    .dashboard-title {
+        font-size: 1.55rem;
+    }
+
+    .dashboard-sales-header {
+        gap: 0.7rem;
+        flex-wrap: wrap;
+    }
+}

@@ -1,0 +1,310 @@
+.factures-shell {
+    --fc-card-bg: #ffffff;
+    --fc-text-main: #0f172a;
+    --fc-stroke: rgba(15, 23, 42, 0.09);
+    --fc-accent: #0f766e;
+    font-family: "Segoe UI Variable Display", "Trebuchet MS", "Gill Sans", sans-serif;
+    color: var(--fc-text-main);
+}
+
+.factures-hero {
+    border-radius: 1rem;
+    background:
+        radial-gradient(circle at 84% 12%, rgba(16, 185, 129, 0.24), transparent 34%),
+        radial-gradient(circle at 9% 94%, rgba(245, 158, 11, 0.2), transparent 36%),
+        linear-gradient(130deg, #0f172a 0%, #134e4a 48%, #0b3f3a 100%);
+    color: #e8faf4;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.24);
+    overflow: hidden;
+}
+
+.factures-hero-inner {
+    padding: 1.35rem 1.4rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.factures-eyebrow {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    color: rgba(232, 250, 244, 0.8);
+}
+
+.factures-title {
+    line-height: 1.14;
+    letter-spacing: -0.015em;
+    font-weight: 750;
+}
+
+.factures-cta-btn {
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.22);
+    border: 0;
+}
+
+.factures-alert {
+    border-radius: 0.85rem;
+    border: 1px solid var(--fc-stroke);
+}
+
+.factures-card {
+    background: var(--fc-card-bg);
+    border: 1px solid var(--fc-stroke);
+    border-radius: 0.9rem;
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07) !important;
+}
+
+.factures-input-group .input-group-text,
+.factures-input-group .form-control,
+.factures-input-group .btn {
+    border-color: rgba(15, 118, 110, 0.22);
+}
+
+.factures-icon-search {
+    width: 1rem;
+    height: 1rem;
+    color: #0b3f3a;
+}
+
+.factures-count-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #0b3f3a;
+    background: rgba(15, 118, 110, 0.14);
+    border: 1px solid rgba(15, 118, 110, 0.3);
+}
+
+.factures-section {
+    scroll-margin-top: 5.5rem;
+}
+
+.factures-section-head h5 {
+    font-size: 1rem;
+    letter-spacing: -0.005em;
+    font-weight: 740;
+}
+
+.factures-section-indicator {
+    display: inline-block;
+    width: 0.62rem;
+    height: 0.62rem;
+    border-radius: 999px;
+    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.05);
+}
+
+.factures-section-draft {
+    background: #f59e0b;
+}
+
+.factures-section-validated {
+    background: #2563eb;
+}
+
+.factures-section-paid {
+    background: #16a34a;
+}
+
+.factures-section-count {
+    background: #f8fbff;
+    color: #334155;
+    border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+.factures-table thead th {
+    background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+    color: #334155;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 750;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    white-space: nowrap;
+}
+
+.factures-table tbody td {
+    border-color: rgba(15, 23, 42, 0.06);
+}
+
+.factures-empty-row {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+.factures-footer {
+    border-top-color: rgba(15, 23, 42, 0.08);
+}
+
+.factures-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border-radius: 0.58rem;
+    font-weight: 630;
+    padding: 0.24rem 0.54rem;
+    border-width: 1px;
+    min-height: 2rem;
+    white-space: nowrap;
+}
+
+.factures-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+    width: 100%;
+}
+
+.factures-actions-grid .factures-action-btn {
+    width: 100%;
+}
+
+.factures-action-icon {
+    width: 0.88rem;
+    height: 0.88rem;
+    flex: 0 0 auto;
+}
+
+.factures-action-view {
+    color: #0b3f3a;
+    border-color: rgba(15, 118, 110, 0.34);
+    background: rgba(15, 118, 110, 0.08);
+}
+
+.factures-action-view:hover {
+    color: #08332f;
+    border-color: rgba(15, 118, 110, 0.5);
+    background: rgba(15, 118, 110, 0.16);
+}
+
+.factures-action-edit {
+    color: #0b4da8;
+    border-color: rgba(37, 99, 235, 0.34);
+    background: rgba(37, 99, 235, 0.08);
+}
+
+.factures-action-edit:hover {
+    color: #083e88;
+    border-color: rgba(37, 99, 235, 0.5);
+    background: rgba(37, 99, 235, 0.16);
+}
+
+.factures-action-validate {
+    color: #166534;
+    border-color: rgba(22, 163, 74, 0.34);
+    background: rgba(22, 163, 74, 0.08);
+}
+
+.factures-action-validate:hover {
+    color: #14532d;
+    border-color: rgba(22, 163, 74, 0.5);
+    background: rgba(22, 163, 74, 0.16);
+}
+
+.factures-action-pay {
+    color: #7c2d12;
+    border-color: rgba(234, 88, 12, 0.36);
+    background: rgba(234, 88, 12, 0.08);
+}
+
+.factures-action-pay:hover {
+    color: #9a3412;
+    border-color: rgba(234, 88, 12, 0.5);
+    background: rgba(234, 88, 12, 0.16);
+}
+
+.factures-actions-grid .factures-action-pay {
+    grid-column: 1 / -1;
+}
+
+.factures-actions-grid > :first-child:nth-last-child(1) {
+    grid-column: 1 / -1;
+}
+
+.factures-action-delete {
+    color: #b42318;
+    border-color: rgba(220, 38, 38, 0.36);
+    background: rgba(220, 38, 38, 0.07);
+}
+
+.factures-action-delete:hover {
+    color: #8f1c14;
+    border-color: rgba(220, 38, 38, 0.52);
+    background: rgba(220, 38, 38, 0.15);
+}
+
+.factures-modal-backdrop {
+    backdrop-filter: blur(2px);
+}
+
+.factures-delete-dialog {
+    max-width: 34rem;
+}
+
+.factures-modal-content {
+    border-radius: 1rem;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.24) !important;
+}
+
+.factures-modal-header {
+    background:
+        radial-gradient(circle at 90% 10%, rgba(15, 118, 110, 0.2), transparent 35%),
+        linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.factures-danger-header {
+    background:
+        radial-gradient(circle at 90% 10%, rgba(239, 68, 68, 0.22), transparent 35%),
+        linear-gradient(180deg, #fff5f5 0%, #ffe8e8 100%);
+}
+
+.factures-modal-title {
+    font-weight: 760;
+    letter-spacing: -0.01em;
+    color: #0f172a;
+}
+
+.factures-modal-body {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+.factures-modal-footer {
+    border-top: 1px solid rgba(15, 23, 42, 0.1);
+    background: #f8fbff;
+}
+
+.factures-modal-btn {
+    border-radius: 0.65rem;
+    font-weight: 650;
+    min-width: 7.5rem;
+}
+
+@media (max-width: 991.98px) {
+    .factures-hero-inner {
+        padding: 1.15rem 1.05rem;
+    }
+
+    .factures-title {
+        font-size: 1.55rem;
+    }
+
+    .factures-modal-btn {
+        min-width: auto;
+    }
+
+    .factures-action-btn {
+        padding: 0.22rem 0.44rem;
+        font-size: 0.79rem;
+    }
+}

@@ -9,27 +9,40 @@
 
 <PageTitle>Factures</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">Gestion des factures</h1>
-    <a class="btn btn-primary" href="/factures/creer">
-        <span class="me-1">+</span> Nouvelle facture
-    </a>
-</div>
+<div class="factures-shell">
+<section class="factures-hero mb-4">
+    <div class="factures-hero-inner">
+        <div>
+            <p class="factures-eyebrow mb-2">Cycle de facturation</p>
+            <h1 class="mb-2 factures-title">Gestion des factures</h1>
+        </div>
+        <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
+            <a class="btn btn-primary factures-cta-btn" href="/factures/creer">
+                <span class="me-1">+</span> Nouvelle facture
+            </a>
+        </div>
+    </div>
+</section>
 
 @if (!string.IsNullOrWhiteSpace(summaryMessage))
 {
-    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success")" role="alert">
+    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success") factures-alert" role="alert">
         @summaryMessage
     </div>
 }
 
 @* ── Search / Filter Bar ─────────────────────────────────────── *@
-<div class="card border-0 shadow-sm mb-3">
+<div class="card border-0 shadow-sm factures-card mb-3">
     <div class="card-body py-2">
         <div class="row g-2 align-items-center">
             <div class="col-md-4">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white">🔍</span>
+                <div class="input-group input-group-sm factures-input-group">
+                    <span class="input-group-text bg-white">
+                        <svg class="factures-icon-search" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"></circle>
+                            <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                        </svg>
+                    </span>
                     <input type="text" class="form-control" placeholder="Rechercher par N° facture, client..."
                            @bind="searchTerm" @bind:event="oninput" @bind:after="ApplyFilters" />
                     @if (!string.IsNullOrEmpty(searchTerm))
@@ -60,17 +73,17 @@
                 </select>
             </div>
             <div class="col-md-2 text-end">
-                <span class="text-muted small">@filteredCount facture(s)</span>
+                <span class="factures-count-pill">@filteredCount facture(s)</span>
             </div>
         </div>
     </div>
 </div>
 
 @* ── Invoice Table ────────────────────────────────────────────── *@
-<div class="card border-0 shadow-sm">
+<div class="card border-0 shadow-sm factures-card factures-table-card">
     @if (filteredCount == 0)
     {
-        <div class="card-body text-center text-muted py-5">
+        <div class="card-body text-center text-muted py-5 factures-empty-row">
             @if (!string.IsNullOrEmpty(searchTerm) || dateFrom.HasValue || dateTo.HasValue || !string.IsNullOrEmpty(filterClient))
             {
                 <span>Aucune facture ne correspond aux critères de recherche.</span>
@@ -88,11 +101,20 @@
             {
                 var group = statusSections[index];
                 var sectionId = group.Title.ToLowerInvariant().Replace(" ", "-");
+                var sectionClass = index switch
+                {
+                    0 => "factures-section-draft",
+                    1 => "factures-section-validated",
+                    _ => "factures-section-paid"
+                };
 
-                <section class="@(index > 0 ? "pt-4 mt-4 border-top" : string.Empty)" id="@sectionId">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="mb-0">@group.Title</h5>
-                        <span class="badge text-bg-light border">@group.Items.Count</span>
+                <section class="factures-section @(index > 0 ? "pt-4 mt-4 border-top" : string.Empty)" id="@sectionId">
+                    <div class="d-flex justify-content-between align-items-center mb-2 factures-section-head">
+                        <h5 class="mb-0 d-flex align-items-center gap-2">
+                            <span class="factures-section-indicator @sectionClass"></span>
+                            @group.Title
+                        </h5>
+                        <span class="badge border factures-section-count">@group.Items.Count</span>
                     </div>
 
                     @if (group.Items.Count == 0)
@@ -102,8 +124,8 @@
                     else
                     {
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light">
+                            <table class="table table-hover align-middle mb-0 factures-table">
+                                <thead>
                                     <tr>
                                         <th>N° Facture</th>
                                         <th>Date</th>
@@ -112,7 +134,7 @@
                                         <th class="text-end">TVA</th>
                                         <th class="text-end">Timbre</th>
                                         <th class="text-end">Total TTC</th>
-                                        <th class="text-center" style="width: 130px;">Actions</th>
+                                        <th class="text-center" style="width: 280px;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -127,31 +149,50 @@
                                             <td class="text-end">@facture.TimbreFiscal.ToString("N3") TND</td>
                                             <td class="text-end">@facture.TotalTTC.ToString("N3") TND</td>
                                             <td class="text-center">
-                                                <div class="d-inline-flex gap-1">
-                                                    <a class="btn btn-sm btn-outline-secondary" href="@($"/factures/{facture.Id}")" title="Voir fiche">
-                                                        Voir fiche
+                                                <div class="factures-actions-grid">
+                                                    <a class="btn btn-sm factures-action-btn factures-action-view" href="@($"/factures/{facture.Id}")" title="Voir fiche">
+                                                        <svg class="factures-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                                            <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"></circle>
+                                                            <path d="M16 16L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                                                        </svg>
+                                                        <span>Voir fiche</span>
                                                     </a>
 
                                                     @if (facture.Statut != StatutFacture.Payee)
                                                     {
-                                                        <a class="btn btn-sm btn-outline-info" href="@($"/factures/editer/{facture.Id}")" title="Modifier">
-                                                            Modifier
+                                                        <a class="btn btn-sm factures-action-btn factures-action-edit" href="@($"/factures/editer/{facture.Id}")" title="Modifier">
+                                                            <svg class="factures-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                                                <path d="M4 20H8L18.5 9.5C19.1 8.9 19.1 7.9 18.5 7.3L16.7 5.5C16.1 4.9 15.1 4.9 14.5 5.5L4 16V20Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path>
+                                                            </svg>
+                                                            <span>Modifier</span>
                                                         </a>
                                                     }
 
                                                     @if (facture.Statut == StatutFacture.Brouillon)
                                                     {
-                                                        <button class="btn btn-sm btn-outline-success" @onclick="() => ValiderAsync(facture.Id)" disabled="@isBusy">
-                                                            Valider
+                                                        <button class="btn btn-sm factures-action-btn factures-action-validate" @onclick="() => ValiderAsync(facture.Id)" disabled="@isBusy">
+                                                            <svg class="factures-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                                                <path d="M5 13L9.2 17L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                            </svg>
+                                                            <span>Valider</span>
                                                         </button>
-                                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => ShowDeleteConfirmation(facture)" disabled="@isBusy">
-                                                            Supprimer
+                                                        <button class="btn btn-sm factures-action-btn factures-action-delete" @onclick="() => ShowDeleteConfirmation(facture)" disabled="@isBusy">
+                                                            <svg class="factures-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                                                <path d="M5 7H19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+                                                                <path d="M9 7V5.8C9 5.36 9.36 5 9.8 5H14.2C14.64 5 15 5.36 15 5.8V7" stroke="currentColor" stroke-width="1.7"></path>
+                                                                <path d="M8 9.5V18C8 18.55 8.45 19 9 19H15C15.55 19 16 18.55 16 18V9.5" stroke="currentColor" stroke-width="1.7"></path>
+                                                            </svg>
+                                                            <span>Supprimer</span>
                                                         </button>
                                                     }
                                                     else if (facture.Statut == StatutFacture.Validee)
                                                     {
-                                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => MarquerPayeeAsync(facture.Id)" disabled="@isBusy">
-                                                            Marquer payée
+                                                        <button class="btn btn-sm factures-action-btn factures-action-pay" @onclick="() => MarquerPayeeAsync(facture.Id)" disabled="@isBusy">
+                                                            <svg class="factures-action-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                                                <path d="M12 4V20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                                                                <path d="M16 8.2C16 6.98 14.43 6 12.5 6H11.5C9.57 6 8 6.98 8 8.2C8 9.46 9.18 10.02 11.16 10.53L12.84 10.97C14.82 11.48 16 12.04 16 13.3C16 14.52 14.43 15.5 12.5 15.5H11.5C9.57 15.5 8 14.52 8 13.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                                                            </svg>
+                                                            <span>Marquer payée</span>
                                                         </button>
                                                     }
                                                 </div>
@@ -168,7 +209,7 @@
     }
 
     @* ── Pagination ────────────────────────────────────────────── *@
-    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2">
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2 factures-footer">
         <span class="text-muted small">Affichage @currentStart–@currentEnd sur @filteredCount résultats</span>
         <nav>
             <ul class="pagination pagination-sm mb-0">
@@ -183,25 +224,25 @@
 @* ── Delete Confirmation Modal ──────────────────────────────── *@
 @if (showDeleteConfirmation)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header">
-                    <h5 class="modal-title">Supprimer la facture</h5>
+    <div class="modal fade show d-block factures-modal-backdrop" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered factures-delete-dialog">
+            <div class="modal-content border-0 shadow factures-modal-content factures-danger-modal">
+                <div class="modal-header factures-modal-header factures-danger-header">
+                    <h5 class="modal-title factures-modal-title">Supprimer la facture</h5>
                     <button type="button" class="btn-close" @onclick="HideDeleteConfirmation"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body factures-modal-body">
                     <p class="mb-2 small text-uppercase fw-semibold text-danger-emphasis">Action irreversible</p>
                     <p class="mb-0">
                         Voulez-vous vraiment supprimer la facture
                         <strong>@factureToDeleteNumero</strong> ?
                     </p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" @onclick="HideDeleteConfirmation" disabled="@isBusy">
+                <div class="modal-footer factures-modal-footer">
+                    <button type="button" class="btn btn-outline-secondary factures-modal-btn" @onclick="HideDeleteConfirmation" disabled="@isBusy">
                         Annuler
                     </button>
-                    <button type="button" class="btn btn-danger" @onclick="ConfirmDeleteFactureAsync" disabled="@isBusy">
+                    <button type="button" class="btn btn-danger factures-modal-btn" @onclick="ConfirmDeleteFactureAsync" disabled="@isBusy">
                         @(isBusy ? "Suppression..." : "Supprimer")
                     </button>
                 </div>
@@ -209,6 +250,7 @@
         </div>
     </div>
 }
+</div>
 
 @code {
     private string? summaryMessage;

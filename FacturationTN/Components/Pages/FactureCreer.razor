@@ -16,33 +16,43 @@
 
 <PageTitle>@(Id.HasValue ? "Modifier facture" : "Nouvelle facture")</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">@(Id.HasValue ? "Modifier la facture" : "Nouvelle facture")</h1>
-    <a class="btn btn-outline-secondary btn-sm" href="/factures">← Retour à la liste</a>
-</div>
+<div class="facture-create-shell">
+<section class="facture-create-hero mb-4">
+    <div class="facture-create-hero-inner">
+        <div>
+            <p class="facture-create-eyebrow mb-2">Cycle de facturation</p>
+            <h1 class="mb-2 facture-create-title">@(Id.HasValue ? "Modifier la facture" : "Nouvelle facture")</h1>
+            <p class="mb-0 facture-create-subtitle">Préparez les lignes, vérifiez les montants et enregistrez en brouillon.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
+            <a class="btn btn-outline-light facture-create-hero-btn" href="/factures">Retour à la liste</a>
+        </div>
+    </div>
+</section>
 
 @if (!string.IsNullOrWhiteSpace(summaryMessage))
 {
-    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success")" role="alert">
+    <div class="alert @(summaryIsError ? "alert-danger" : "alert-success") facture-create-alert" role="alert">
         @summaryMessage
     </div>
 }
 
 @* ── Invoice Header ───────────────────────────────────────────── *@
-<div class="card border-0 shadow-sm mb-3">
+<div class="card border-0 shadow-sm facture-create-card mb-3">
+    <div class="card-header bg-white fw-semibold facture-create-card-header">Entête facture</div>
     <div class="card-body">
         <div class="row g-3">
             <div class="col-md-4">
-                <label class="form-label">N° Facture</label>
-                <input type="text" class="form-control bg-light" readonly value="@numeroFacture" />
+                <label class="form-label facture-create-label">N° Facture</label>
+                <input type="text" class="form-control facture-create-readonly" readonly value="@numeroFacture" />
                 <div class="form-text">Généré automatiquement</div>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Date <span class="text-danger">*</span></label>
+                <label class="form-label facture-create-label">Date <span class="text-danger">*</span></label>
                 <input type="date" class="form-control" @bind="dateFacture" />
             </div>
             <div class="col-md-4">
-                <label class="form-label">Client <span class="text-danger">*</span></label>
+                <label class="form-label facture-create-label">Client <span class="text-danger">*</span></label>
                 <select class="form-select" @bind="selectedClientId">
                     <option value="">— Sélectionner un client —</option>
                     @foreach (var c in clients)
@@ -56,17 +66,17 @@
 </div>
 
 @* ── Line Items ───────────────────────────────────────────────── *@
-<div class="card border-0 shadow-sm mb-3">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+<div class="card border-0 shadow-sm facture-create-card mb-3">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center facture-create-card-header">
         <span class="fw-semibold">Lignes de facture</span>
-        <button class="btn btn-primary btn-sm" @onclick="AddLine">
+        <button class="btn btn-primary btn-sm facture-create-add-line" @onclick="AddLine">
             + Ajouter une ligne
         </button>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
-                <thead class="table-light">
+            <table class="table align-middle mb-0 facture-create-table">
+                <thead>
                     <tr>
                         <th style="min-width: 200px;">Produit</th>
                         <th>Désignation</th>
@@ -81,7 +91,7 @@
                     @if (lignes.Count == 0)
                     {
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-4 facture-create-empty">
                                 Aucune ligne. Cliquez sur <strong>Ajouter une ligne</strong> pour commencer.
                             </td>
                         </tr>
@@ -103,7 +113,7 @@
                             </td>
                             <td>
                                 <input type="text"
-                                       class="form-control form-control-sm bg-light"
+                                       class="form-control form-control-sm facture-create-readonly"
                                        @bind="ligne.Designation"
                                        @bind:event="oninput" />
                             </td>
@@ -115,14 +125,19 @@
                                 <span class="small">@ligne.PrixUnitaireHT.ToString("N3") TND</span>
                             </td>
                             <td class="text-center">
-                                <span class="badge @GetTvaBadgeClass(ligne.TauxTva)">@ligne.TauxTva %</span>
+                                <span class="badge facture-create-tva-badge @GetTvaBadgeClass(ligne.TauxTva)">@ligne.TauxTva %</span>
                             </td>
                             <td class="text-end fw-semibold">
                                 @ligne.MontantHT.ToString("N3") TND
                             </td>
                             <td class="text-center">
-                                <button class="btn btn-outline-danger btn-sm" @onclick="() => RemoveLine(index)"
-                                        title="Supprimer la ligne">🗑️</button>
+                                <button class="btn btn-sm facture-create-delete-line" @onclick="() => RemoveLine(index)" title="Supprimer la ligne">
+                                    <svg class="facture-create-delete-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path d="M5 7H19" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+                                        <path d="M9 7V5.8C9 5.36 9.36 5 9.8 5H14.2C14.64 5 15 5.36 15 5.8V7" stroke="currentColor" stroke-width="1.7"></path>
+                                        <path d="M8 9.5V18C8 18.55 8.45 19 9 19H15C15.55 19 16 18.55 16 18V9.5" stroke="currentColor" stroke-width="1.7"></path>
+                                    </svg>
+                                </button>
                             </td>
                         </tr>
                     }
@@ -134,11 +149,11 @@
 
 @* ── Récapitulatif (Totals) ───────────────────────────────────── *@
 <div class="row justify-content-end mb-4">
-    <div class="col-md-5">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-semibold">Récapitulatif</div>
+    <div class="col-12 col-lg-6 col-xl-5">
+        <div class="card border-0 shadow-sm facture-create-card facture-create-totals-card">
+            <div class="card-header bg-white fw-semibold facture-create-card-header">Récapitulatif</div>
             <div class="card-body p-0">
-                <table class="table table-sm mb-0">
+                <table class="table table-sm mb-0 facture-create-totals-table">
                     <tbody>
                         <tr>
                             <td class="ps-3">Total HT</td>
@@ -159,7 +174,7 @@
                             <td class="ps-3">Timbre fiscal</td>
                             <td class="text-end pe-3">@timbreFiscal.ToString("N3") TND</td>
                         </tr>
-                        <tr class="table-dark">
+                        <tr class="facture-create-total-ttc-row">
                             <td class="ps-3 fw-bold">TOTAL TTC</td>
                             <td class="text-end pe-3 fw-bold fs-5">@TotalTTC.ToString("N3") TND</td>
                         </tr>
@@ -171,11 +186,12 @@
 </div>
 
 @* ── Action Buttons ───────────────────────────────────────────── *@
-<div class="d-flex justify-content-end gap-2 mb-5">
-    <a class="btn btn-outline-secondary" href="/factures">Annuler</a>
-    <button class="btn btn-primary" @onclick="SaveFacture" disabled="@(!CanSave)">
+<div class="d-flex justify-content-end gap-2 mb-5 facture-create-actions">
+    <a class="btn btn-outline-secondary facture-create-action-btn" href="/factures">Annuler</a>
+    <button class="btn btn-primary facture-create-action-btn" @onclick="SaveFacture" disabled="@(!CanSave)">
         Enregistrer la facture
     </button>
+</div>
 </div>
 
 @code {

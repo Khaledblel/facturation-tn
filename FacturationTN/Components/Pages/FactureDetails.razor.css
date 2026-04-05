@@ -1,16 +1,32 @@
-.facture-details-shell {
+.facture-view-shell {
+    --fv-card-bg: #ffffff;
+    --fv-text-main: #0f172a;
+    --fv-stroke: rgba(15, 23, 42, 0.09);
+    --fv-accent: #0f766e;
     max-width: 1220px;
     margin: 0 auto;
+    font-family: "Segoe UI Variable Display", "Trebuchet MS", "Gill Sans", sans-serif;
+    color: var(--fv-text-main);
 }
 
-.hero-panel {
+.facture-view-state-card {
+    border: 1px solid var(--fv-stroke);
+    border-radius: 0.9rem;
+}
+
+.facture-view-hero {
     border-radius: 1rem;
-    padding: 1.1rem;
-    background: linear-gradient(120deg, #f8fafc 0%, #eef6ff 100%);
-    border: 1px solid #e8edf3;
+    background:
+        radial-gradient(circle at 85% 11%, rgba(16, 185, 129, 0.24), transparent 34%),
+        radial-gradient(circle at 9% 95%, rgba(245, 158, 11, 0.2), transparent 36%),
+        linear-gradient(130deg, #0f172a 0%, #134e4a 46%, #0b3f3a 100%);
+    color: #e8faf4;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.24);
+    overflow: hidden;
 }
 
-.hero-inner {
+.facture-view-hero-inner {
+    padding: 1.35rem 1.4rem;
     display: flex;
     gap: 1rem;
     align-items: center;
@@ -18,67 +34,123 @@
     flex-wrap: wrap;
 }
 
-.eyebrow {
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-size: 0.72rem;
-    color: #5d6b7a;
-    font-weight: 600;
-}
-
-.details-title {
-    line-height: 1.1;
-    font-size: clamp(1.45rem, 2.4vw, 2rem);
-}
-
-.pill-soft {
-    padding: 0.35rem 0.65rem;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.06);
-    font-size: 0.78rem;
-    color: #334155;
-    border: 1px solid rgba(15, 23, 42, 0.06);
-}
-
-.details-action-btn {
-    min-width: 110px;
-}
-
-.details-card {
-    border-radius: 0.9rem;
-    overflow: hidden;
-}
-
-.section-header {
-    font-size: 0.92rem;
-    letter-spacing: 0.02em;
-}
-
-.details-label {
+.facture-view-eyebrow {
     font-size: 0.75rem;
     text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    color: rgba(232, 250, 244, 0.8);
+}
+
+.facture-view-title {
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    font-size: clamp(1.45rem, 2.4vw, 2rem);
+    font-weight: 760;
+}
+
+.facture-view-soft-pill {
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(232, 250, 244, 0.12);
+    font-size: 0.78rem;
+    color: #dcfce7;
+    border: 1px solid rgba(232, 250, 244, 0.2);
+}
+
+.facture-view-hero-btn {
+    min-width: 110px;
+    border-radius: 0.7rem;
+    font-weight: 640;
+}
+
+.facture-view-print-btn {
+    color: #0f3f3a;
+}
+
+.facture-view-card {
+    background: var(--fv-card-bg);
+    border: 1px solid var(--fv-stroke);
+    border-radius: 0.9rem;
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.07) !important;
+}
+
+.facture-view-card-header {
+    font-size: 0.88rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    background:
+        radial-gradient(circle at 92% 8%, rgba(15, 118, 110, 0.12), transparent 35%),
+        linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%) !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.09);
+}
+
+.facture-view-label {
+    font-size: 0.73rem;
+    text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #6b7280;
+    color: #64748b;
     margin-bottom: 0.1rem;
 }
 
-.details-value {
+.facture-view-value {
     font-size: 0.96rem;
     color: #111827;
 }
 
-.details-break {
+.facture-view-break {
     overflow-wrap: anywhere;
     word-break: break-word;
 }
 
+.facture-view-table thead th {
+    background: linear-gradient(180deg, #f8fbff 0%, #f2f7ff 100%);
+    color: #334155;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 750;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    white-space: nowrap;
+}
+
+.facture-view-table tbody td {
+    border-color: rgba(15, 23, 42, 0.06);
+}
+
+.facture-view-totals-card {
+    border-color: rgba(15, 118, 110, 0.22);
+}
+
+.facture-view-totals-table td {
+    border-color: rgba(15, 23, 42, 0.06);
+}
+
+.facture-view-total-ttc-row {
+    background:
+        radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.18), transparent 45%),
+        linear-gradient(120deg, #0f172a 0%, #134e4a 48%, #0b3f3a 100%);
+    color: #f0fdfa;
+}
+
+@media (max-width: 991.98px) {
+    .facture-view-hero-inner {
+        padding: 1.15rem 1.05rem;
+    }
+
+    .facture-view-title {
+        font-size: 1.55rem;
+    }
+}
+
 @media print {
     .btn,
-    .hero-panel .details-action-btn {
+    .facture-view-hero .facture-view-hero-btn {
         display: none !important;
     }
 
-    .facture-details-shell {
+    .facture-view-shell {
         max-width: none;
     }
 }
