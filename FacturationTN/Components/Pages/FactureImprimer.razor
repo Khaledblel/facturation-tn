@@ -121,7 +121,7 @@ else
             <article class="invoice-notes">
                 <h3>Notes</h3>
                 <p>Merci pour votre confiance.</p>
-                <p>Document genere depuis FacturationTN.</p>
+                <p>Document généré depuis FacturationTN.</p>
             </article>
             <article class="invoice-totals">
                 <div><span>Total HT</span><strong>@facture.TotalHT.ToString("N3") TND</strong></div>
@@ -197,9 +197,9 @@ else
         return statut switch
         {
             StatutFacture.Brouillon => "Brouillon",
-            StatutFacture.Validee => "Validee",
-            StatutFacture.Payee => "Payee",
-            StatutFacture.Annulee => "Annulee",
+            StatutFacture.Validee => "Validée",
+            StatutFacture.Payee => "Payée",
+            StatutFacture.Annulee => "Annulée",
             _ => "-"
         };
     }
