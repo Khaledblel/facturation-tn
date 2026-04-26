@@ -15,5 +15,5 @@ public class CategorieClient
     public string Nom { get; set; } = string.Empty;
 
     // ── Navigation ──
-    public ICollection<Client> Clients { get; set; } = [];
+    public ICollection<Client> Clients { get; set; } = new List<Client>();
 }

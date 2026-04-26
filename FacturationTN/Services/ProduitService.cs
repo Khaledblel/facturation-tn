@@ -7,9 +7,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FacturationTN.Services;
 
-public class ProduitService(AppDbContext dbContext) : IProduitService
+public class ProduitService : IProduitService
 {
-    private readonly AppDbContext _dbContext = dbContext;
+    private readonly AppDbContext _dbContext;
+
+    public ProduitService(AppDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
     private static readonly HashSet<string> DefaultUnites = new(StringComparer.OrdinalIgnoreCase)
     {
         "Pièce",

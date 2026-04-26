@@ -1,5 +1,6 @@
 @page "/factures/creer"
 @page "/factures/editer/{id:int}"
+@attribute [Authorize]
 @rendermode InteractiveServer
 
 @using System.ComponentModel.DataAnnotations
@@ -418,14 +419,30 @@
         }
     }
 
-    private string GetTvaBadgeClass(int taux) => taux switch
+    private string GetTvaBadgeClass(int taux)
     {
-        0 => "bg-success-subtle text-success",
-        7 => "bg-info-subtle text-info",
-        13 => "bg-warning-subtle text-warning-emphasis",
-        19 => "bg-danger-subtle text-danger",
-        _ => "bg-secondary-subtle text-secondary"
-    };
+        if (taux == 0)
+        {
+            return "bg-success-subtle text-success";
+        }
+
+        if (taux == 7)
+        {
+            return "bg-info-subtle text-info";
+        }
+
+        if (taux == 13)
+        {
+            return "bg-warning-subtle text-warning-emphasis";
+        }
+
+        if (taux == 19)
+        {
+            return "bg-danger-subtle text-danger";
+        }
+
+        return "bg-secondary-subtle text-secondary";
+    }
 
     // ── View Models ──
     private class LigneFactureVM
@@ -439,5 +456,15 @@
         public decimal MontantTva => MontantHT * TauxTva / 100m;
     }
 
-    private record TvaLine(int Taux, decimal Montant);
+    private class TvaLine
+    {
+        public int Taux { get; set; }
+        public decimal Montant { get; set; }
+
+        public TvaLine(int taux, decimal montant)
+        {
+            Taux = taux;
+            Montant = montant;
+        }
+    }
 }

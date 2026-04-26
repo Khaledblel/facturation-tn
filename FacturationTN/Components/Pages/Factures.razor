@@ -1,4 +1,5 @@
 @page "/factures"
+@attribute [Authorize]
 @rendermode InteractiveServer
 
 @using FacturationTN.Models
@@ -270,7 +271,7 @@
     private int filteredCount = 0;
     private int currentStart = 0;
     private int currentEnd = 0;
-    private List<FactureSection> statusSections = [];
+    private List<FactureSection> statusSections = new();
 
     // ── Delete confirmation state ──
     private bool showDeleteConfirmation;
@@ -503,5 +504,15 @@
         }
     }
 
-    private sealed record FactureSection(string Title, List<Facture> Items);
+    private sealed class FactureSection
+    {
+        public string Title { get; set; }
+        public List<Facture> Items { get; set; }
+
+        public FactureSection(string title, List<Facture> items)
+        {
+            Title = title;
+            Items = items;
+        }
+    }
 }

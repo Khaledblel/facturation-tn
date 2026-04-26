@@ -1,4 +1,5 @@
 @page "/clients"
+@attribute [Authorize]
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
 @using FacturationTN.Models
@@ -580,8 +581,8 @@
     private string formNotes = string.Empty;
 
     // ── Dynamic category list (persisted via service later) ──
-    private List<CategorieClient> categoriesClientDb = [];
-    private List<string> categoriesClient = [];
+    private List<CategorieClient> categoriesClientDb = new();
+    private List<string> categoriesClient = new();
     private static readonly HashSet<string> DefaultCategoriesClient = new(StringComparer.OrdinalIgnoreCase)
     {
         "VIP",
@@ -603,8 +604,8 @@
     private bool deleteCategorieClientIsError;
 
     // ── Data / feedback state ──
-    private List<Client> allClients = [];
-    private List<Client> filteredClients = [];
+    private List<Client> allClients = new();
+    private List<Client> filteredClients = new();
     private string summaryMessage = string.Empty;
     private bool summaryIsError;
     private bool isSaving;

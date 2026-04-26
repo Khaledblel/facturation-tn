@@ -7,9 +7,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FacturationTN.Services;
 
-public class FactureService(AppDbContext dbContext) : IFactureService
+public class FactureService : IFactureService
 {
-    private readonly AppDbContext _dbContext = dbContext;
+    private readonly AppDbContext _dbContext;
+
+    public FactureService(AppDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
 
     public async Task<Facture?> GetByIdAsync(int id)
     {

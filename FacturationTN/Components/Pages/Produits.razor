@@ -1,4 +1,5 @@
 @page "/produits"
+@attribute [Authorize]
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
 @using FacturationTN.Models
@@ -573,10 +574,10 @@
     private int currentEnd = 0;
 
     // ── Dynamic lists ──
-    private List<CategorieProduit> categoriesProduitDb = [];
-    private List<string> categoriesProduit = [];
-    private List<UniteMesure> unitesMesureDb = [];
-    private List<string> unitesMesure = [];
+    private List<CategorieProduit> categoriesProduitDb = new();
+    private List<string> categoriesProduit = new();
+    private List<UniteMesure> unitesMesureDb = new();
+    private List<string> unitesMesure = new();
     private static readonly HashSet<string> DefaultUnitesMesure = new(StringComparer.OrdinalIgnoreCase)
     {
         "Pièce",
@@ -605,8 +606,8 @@
     private bool deleteUniteIsError;
 
     // ── Data / feedback state ──
-    private List<Produit> allProduits = [];
-    private List<Produit> filteredProduits = [];
+    private List<Produit> allProduits = new();
+    private List<Produit> filteredProduits = new();
     private string summaryMessage = string.Empty;
     private bool summaryIsError;
     private bool isSaving;

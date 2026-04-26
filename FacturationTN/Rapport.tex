@@ -1,0 +1,136 @@
+﻿\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+
+\geometry{top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=cyan}
+
+\lstset{
+  language=[Sharp]C,
+  basicstyle=\ttfamily\small,
+  numbers=left,
+  numberstyle=\tiny,
+  breaklines=true,
+  backgroundcolor=\color[RGB]{245,245,245}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Rapport FacturationTN}
+\rhead{\thepage}
+
+\newcommand{\shot}[3]{%
+\begin{figure}[H]
+\centering
+\IfFileExists{#1}{\includegraphics[width=#2]{#1}}{\fbox{\parbox[c][5cm][c]{#2}{\centering Capture a inserer\\\texttt{#1}}}}
+\caption{#3}
+\end{figure}}
+
+\begin{document}
+\begin{titlepage}
+\centering
+\IfFileExists{wwwroot/images/logo.png}{\includegraphics[width=3cm]{wwwroot/images/logo.png}\\[0.5cm]}{}
+{\LARGE \textbf{FacturationTN}}\\[0.3cm]
+{\large Application de gestion de facturation}\\[1cm]
+{\Large \textbf{Rapport technique}}\\[1.5cm]
+\textbf{Realise par:} Khaled Blel, Mohamed\\[0.5cm]
+\textbf{Annee: 2026}
+\vfill
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\section{Introduction}
+FacturationTN est une application Blazor Web App (.NET 10) pour gerer clients, produits et factures avec conformite fiscale tunisienne (TVA multi-taux et timbre fiscal).
+
+\subsection{Objectifs}
+\begin{itemize}
+\item Gestion complete des clients, produits, factures
+\item Calcul automatique HT / TVA / TTC et timbre fiscal
+\item Authentification utilisateur et pages protegees
+\item Tableau de bord avec indicateurs et graphiques
+\end{itemize}
+
+\section{Architecture}
+\begin{itemize}
+\item \textbf{Frontend}: Blazor Components (Razor pages + layouts)
+\item \textbf{Backend}: Services metier injectes via DI
+\item \textbf{Data}: EF Core + SQLite (Code First + migrations)
+\item \textbf{Security}: Cookie Authentication + Authorization
+\end{itemize}
+
+\shot{screenshots/architecture.png}{14cm}{Architecture de l'application}
+
+\section{Modele de donnees}
+Entites principales: \texttt{Client}, \texttt{Produit}, \texttt{Facture}, \texttt{LigneFacture}, \texttt{UserAccount}.
+
+\subsection{Regles metier facture}
+\begin{itemize}
+\item Numero auto: FA-YYYY-NNNN
+\item Workflow: Brouillon $\rightarrow$ Validee $\rightarrow$ Payee / Annulee
+\item Total HT = somme des lignes HT
+\item Total TVA = somme des lignes TVA
+\item Total TTC = HT + TVA + Timbre
+\end{itemize}
+
+\shot{screenshots/schema-bd.png}{15cm}{Schema de base de donnees}
+
+\section{Fonctionnalites principales}
+\subsection{Authentification}
+\begin{itemize}
+\item Connexion / inscription / deconnexion
+\item Pages metier protegees avec \texttt{[Authorize]}
+\item Gestion profil utilisateur (nom, email, telephone, role, image)
+\end{itemize}
+
+\shot{screenshots/login.png}{14cm}{Page de connexion}
+\shot{screenshots/profile.png}{14cm}{Page Mon profil}
+
+\subsection{Facturation}
+\begin{itemize}
+\item CRUD clients, produits, factures
+\item Validation metier et contraintes d'unicite
+\item Impression facture
+\end{itemize}
+
+\shot{screenshots/factures-list.png}{15cm}{Liste des factures}
+\shot{screenshots/facture-creation.png}{15cm}{Creation de facture}
+\shot{screenshots/facture-details.png}{15cm}{Details de facture}
+
+\subsection{Dashboard et visualisation}
+Le dashboard contient des KPIs et des graphiques (CA mensuel, TVA par taux, et indicateurs de statut).
+
+\shot{screenshots/home-dashboard.png}{15cm}{Dashboard principal}
+\shot{screenshots/home-charts.png}{15cm}{Graphiques du dashboard}
+
+\section{Alignement pedagogique (TP1-TP10)}
+Le projet suit les principes et la logique des TP etudies:
+\begin{itemize}
+\item Separation Page / Service / Data (TP4)
+\item Utilisation EF Core + migrations + LINQ async (TP5/TP6)
+\item Formulaires \texttt{EditForm} et validation (TP7)
+\item Composants et communication Blazor (TP8)
+\item Visualisation et filtrage multi-criteres (TP9/TP10)
+\end{itemize}
+
+\section{Installation et execution}
+\begin{lstlisting}[language=bash]
+dotnet restore
+dotnet ef database update
+dotnet watch
+\end{lstlisting}
+
+\section{Conclusion}
+FacturationTN est une application complete, evolutive, et conforme a la progression pedagogique des TP. Elle couvre la chaine complete: persistance, logique metier, interface interactive, securite, et visualisation de donnees.
+
+\end{document}
