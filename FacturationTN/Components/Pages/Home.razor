@@ -1,4 +1,5 @@
 @page "/"
+@attribute [Authorize]
 @rendermode InteractiveServer
 
 @using FacturationTN.Services.Interfaces
@@ -63,7 +64,61 @@
             </div>
         </div>
     </div>
-</div>
+  </div>
+
+  <div class="row g-3 mb-4 dashboard-diagrams">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100 dashboard-diagram-card">
+        <div class="card-header bg-white fw-semibold">Chiffre d'affaires mensuel (HT)</div>
+        <div class="card-body">
+          @if (caByMonth.Count == 0)
+          {
+            <div class="text-muted small">Aucune donnée.</div>
+          }
+          else
+          {
+            <svg width="100%" height="180" viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg" aria-label="CA mensuel chart">
+              @{
+                var count = caByMonth.Count;
+                var maxVal = caByMonth.Count > 0 ? (double)caByMonth.Max(x => x.CaHt) : 0;
+              }
+              @for (int i = 0; i < caByMonth.Count; i++)
+              {
+                var m = caByMonth[i];
+                var scale = maxVal > 0 ? (double)m.CaHt / maxVal : 0;
+                var h = 140 * scale;
+                var y = 140 - h;
+              <rect x="@(40 + i * 26)" y="@y" width="20" height="@h" fill="#3B82F6" />
+              <foreignObject x="@(40 + i * 26)" y="150" width="20" height="22">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px; text-align:center; width:20px;">@m.Mois</div>
+              </foreignObject>
+              }
+            </svg>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100 dashboard-diagram-card">
+        <div class="card-header bg-white fw-semibold">TVA par taux</div>
+        <div class="card-body">
+          @foreach (var row in tvaByRate)
+          {
+            var maxRate = tvaByRate.Max(r => r.MontantTva);
+            var widthPct = maxRate > 0 ? (row.MontantTva / maxRate) * 100 : 0;
+            var color = ColorForRate(row.Taux);
+            <div class="d-flex align-items-center mb-2">
+              <div style="width:60px; font-size:12px;">@row.Taux %</div>
+              <div class="flex-grow-1" style="height:12px; background:#e5e7eb; border-radius:6px;">
+                <div style="height:100%; width:@widthPct%; background:@color; border-radius:6px;"></div>
+              </div>
+              <div style="width:120px; text-align:right;">@row.MontantTva.ToString("N3")</div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
 
 <div class="row g-3 mb-4 dashboard-kpi-grid">
     <div class="col-xl col-md-4 col-sm-6">
@@ -141,6 +196,19 @@
                     <div class="progress-bar bg-success" role="progressbar" style="width:@(totalFactures == 0 ? 0 : (int)Math.Min(100, (decimal)paidFactures * 100 / totalFactures))%" aria-valuenow="@(totalFactures == 0 ? 0 : (int)Math.Min(100, (decimal)paidFactures * 100 / totalFactures))" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
                 <div class="text-end small text-muted mt-1 dashboard-progress-label">% de factures payées</div>
+
+                <div class="dashboard-status-chart mt-3">
+                    <div class="dashboard-donut" style="--paid-angle:@paidAngleDeg;">
+                        <div class="dashboard-donut-inner">
+                            <div class="dashboard-donut-value">@paidFactures</div>
+                            <div class="dashboard-donut-label">payées</div>
+                        </div>
+                    </div>
+                    <div class="dashboard-donut-legend">
+                        <div><span class="dot dot-paid"></span>Payées: @paidFactures</div>
+                        <div><span class="dot dot-pending"></span>Validées: @validatedFactures</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -244,26 +312,41 @@
             </div>
             <div class="card-body">
                 <div class="chart-placeholder chart-placeholder-lg dashboard-sales-chart d-flex align-items-center justify-content-center">
-                    <div style="width:100%; padding:12px;">
+                    <div class="dashboard-line-chart-wrap">
                         @if (caByMonth.Count == 0)
                         {
                             <span class="text-muted">Aucune donnée de ventes.</span>
                         }
                         else
                         {
-                            @foreach (var m in caByMonth)
-                            {
-                                var value = selectedPeriodView == "HT" ? m.CaHt : m.CaTtc;
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div style="width:90px;">@m.Mois</div>
-                                    <div class="flex-grow-1" style="height:10px; background:#e9ecef; border-radius:6px;">
-                                        <div style="height:100%; width:@GetMonthlyBarWidth(value)%; background:#2563eb; border-radius:6px;"></div>
-                                    </div>
-                                    <div style="width:110px; text-align:right;">
-                                        @value.ToString("N3")
-                                    </div>
-                                </div>
-                            }
+                            <svg class="dashboard-line-chart" viewBox="0 0 560 190" xmlns="http://www.w3.org/2000/svg" aria-label="Evolution du chiffre d'affaires">
+                                <line x1="40" y1="150" x2="530" y2="150" stroke="#94a3b8" stroke-width="1" />
+                                <line x1="40" y1="30" x2="40" y2="150" stroke="#94a3b8" stroke-width="1" />
+                                <polyline points="@BuildSalesAreaPoints()" fill="rgba(37, 99, 235, 0.15)" stroke="none" />
+                                <polyline points="@BuildSalesLinePoints()" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+
+                                @for (var i = 0; i < caByMonth.Count; i++)
+                                {
+                                    var x = GetSalesX(i);
+                                    var y = GetSalesY(i);
+                                    <circle cx="@x" cy="@y" r="4" fill="#ffffff" stroke="#2563eb" stroke-width="2" />
+                                }
+                            </svg>
+
+                            <div class="dashboard-line-labels">
+                                @foreach (var m in caByMonth)
+                                {
+                                    <div>@m.Mois</div>
+                                }
+                            </div>
+
+                            <div class="dashboard-line-values mt-2">
+                                @foreach (var m in caByMonth)
+                                {
+                                    var value = selectedPeriodView == "HT" ? m.CaHt : m.CaTtc;
+                                    <div>@value.ToString("N1")</div>
+                                }
+                            </div>
                         }
                     </div>
                 </div>
@@ -348,6 +431,7 @@
 </div>
 
 @code {
+    private readonly System.Globalization.CultureInfo ci = System.Globalization.CultureInfo.InvariantCulture;
     private string selectedPeriodView = "TTC";
 
     // ── KPI Summary ──
@@ -381,6 +465,7 @@
     private decimal monthHt;
     private decimal monthTtc;
     private string currentMonthLabel = string.Empty;
+    private string paidAngleDeg = "0deg";
 
     protected override async Task OnInitializedAsync()
     {
@@ -408,6 +493,8 @@
 
         var allLines = salesFactures.SelectMany(f => f.Lignes).ToList();
         soldProducts = allLines.Select(l => l.ProduitId).Distinct().Count();
+        var paidPercent = totalFactures == 0 ? 0m : (decimal)paidFactures / totalFactures;
+        paidAngleDeg = (paidPercent * 360m).ToString("0.##", ci) + "deg";
 
         var now = DateTime.Now;
         currentMonthLabel = now.ToString("MMMM yyyy");
@@ -525,8 +612,143 @@
         return percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
     }
 
-    private record TvaRow(int Taux, decimal BaseHt, decimal MontantTva);
-    private record MonthlyCA(string Mois, decimal CaHt, decimal CaTtc);
-    private record ClientCA(string ClientName, decimal CaHt, decimal CaTtc);
-    private record ProduitCA(string ProduitLabel, decimal CaHt, decimal CaTtc);
+    private string ColorForRate(int rate)
+    {
+        if (rate == 0)
+        {
+            return "#9CA3AF";
+        }
+
+        if (rate == 7)
+        {
+            return "#3B82F6";
+        }
+
+        if (rate == 13)
+        {
+            return "#F59E0B";
+        }
+
+        if (rate == 19)
+        {
+            return "#10B981";
+        }
+
+        return "#93C5FD";
+    }
+
+    private decimal GetSelectedMax() => selectedPeriodView == "HT" ? maxCaHt : maxCaTtc;
+
+    private decimal GetSelectedMonthlyValue(MonthlyCA month)
+        => selectedPeriodView == "HT" ? month.CaHt : month.CaTtc;
+
+    private double GetSalesX(int index)
+    {
+        if (caByMonth.Count <= 1)
+        {
+            return 285;
+        }
+
+        var step = 490d / (caByMonth.Count - 1);
+        return 40 + (index * step);
+    }
+
+    private double GetSalesY(int index)
+    {
+        var max = GetSelectedMax();
+        if (max <= 0 || index < 0 || index >= caByMonth.Count)
+        {
+            return 150;
+        }
+
+        var value = GetSelectedMonthlyValue(caByMonth[index]);
+        var ratio = (double)(value / max);
+        return 150 - (ratio * 120);
+    }
+
+    private string BuildSalesLinePoints()
+    {
+        if (caByMonth.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var points = new List<string>(caByMonth.Count);
+        for (var i = 0; i < caByMonth.Count; i++)
+        {
+            points.Add($"{GetSalesX(i).ToString("0.##", ci)},{GetSalesY(i).ToString("0.##", ci)}");
+        }
+
+        return string.Join(" ", points);
+    }
+
+    private string BuildSalesAreaPoints()
+    {
+        if (caByMonth.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var linePoints = BuildSalesLinePoints();
+        var firstX = GetSalesX(0).ToString("0.##", ci);
+        var lastX = GetSalesX(caByMonth.Count - 1).ToString("0.##", ci);
+
+        return $"{linePoints} {lastX},150 {firstX},150";
+    }
+
+    private class TvaRow
+    {
+        public int Taux { get; set; }
+        public decimal BaseHt { get; set; }
+        public decimal MontantTva { get; set; }
+
+        public TvaRow(int taux, decimal baseHt, decimal montantTva)
+        {
+            Taux = taux;
+            BaseHt = baseHt;
+            MontantTva = montantTva;
+        }
+    }
+
+    private class MonthlyCA
+    {
+        public string Mois { get; set; }
+        public decimal CaHt { get; set; }
+        public decimal CaTtc { get; set; }
+
+        public MonthlyCA(string mois, decimal caHt, decimal caTtc)
+        {
+            Mois = mois;
+            CaHt = caHt;
+            CaTtc = caTtc;
+        }
+    }
+
+    private class ClientCA
+    {
+        public string ClientName { get; set; }
+        public decimal CaHt { get; set; }
+        public decimal CaTtc { get; set; }
+
+        public ClientCA(string clientName, decimal caHt, decimal caTtc)
+        {
+            ClientName = clientName;
+            CaHt = caHt;
+            CaTtc = caTtc;
+        }
+    }
+
+    private class ProduitCA
+    {
+        public string ProduitLabel { get; set; }
+        public decimal CaHt { get; set; }
+        public decimal CaTtc { get; set; }
+
+        public ProduitCA(string produitLabel, decimal caHt, decimal caTtc)
+        {
+            ProduitLabel = produitLabel;
+            CaHt = caHt;
+            CaTtc = caTtc;
+        }
+    }
 }

@@ -53,7 +53,7 @@ public class Facture
     // Lignes de facture
     // ════════════════════════════════════════════════════════════
 
-    public ICollection<LigneFacture> Lignes { get; set; } = [];
+    public ICollection<LigneFacture> Lignes { get; set; } = new List<LigneFacture>();
 
     // ════════════════════════════════════════════════════════════
     // Audit

@@ -1,0 +1,307 @@
+@page "/profile"
+@attribute [Authorize]
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Globalization
+@using System.IO
+@using System.Security.Claims
+@using FacturationTN.Services.Interfaces
+@inject IUserAccountService UserAccountService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Profil</PageTitle>
+
+<div class="profile-shell">
+    <section class="profile-hero mb-4">
+        <div class="profile-hero-inner">
+            <div>
+                <p class="profile-eyebrow mb-2">Espace personnel</p>
+                <h1 class="mb-2 profile-title">Mon profil</h1>
+                <p class="mb-0 profile-subtitle">Mettez a jour vos informations, votre image et votre role.</p>
+            </div>
+        </div>
+    </section>
+
+    @if (isLoading)
+    {
+        <div class="alert alert-info">Chargement du profil...</div>
+    }
+    else if (!string.IsNullOrWhiteSpace(loadError))
+    {
+        <div class="alert alert-danger">@loadError</div>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(message))
+        {
+            <div class="alert @(isError ? "alert-danger" : "alert-success") profile-alert">@message</div>
+        }
+
+        <div class="card border-0 shadow-sm profile-card">
+            <div class="card-body p-4">
+                <EditForm Model="profile" OnValidSubmit="SaveAsync">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="row g-4">
+                        <div class="col-xl-4 col-lg-5">
+                            <div class="profile-avatar-card">
+                                <div class="profile-avatar-wrap mb-3">
+                                    @if (!string.IsNullOrWhiteSpace(profile.ProfileImageDataUrl))
+                                    {
+                                        <img class="profile-avatar" src="@profile.ProfileImageDataUrl" alt="Photo de profil" />
+                                    }
+                                    else
+                                    {
+                                        <div class="profile-avatar-fallback">@GetInitials()</div>
+                                    }
+                                </div>
+
+                                <label class="form-label mb-1">Photo de profil</label>
+                                <InputFile OnChange="OnProfileImageSelected" accept="image/png,image/jpeg,image/webp,image/gif" class="form-control" />
+                                <small class="text-muted d-block mt-2">Formats: PNG, JPG, WEBP, GIF (max 2 MB)</small>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="row g-3 profile-form-fields">
+                                <div class="col-md-6">
+                            <label class="form-label">Nom d'utilisateur</label>
+                            <InputText class="form-control" @bind-Value="profile.UserName" />
+                            <ValidationMessage For="() => profile.UserName" />
+                                </div>
+
+                                <div class="col-md-6">
+                            <label class="form-label">Nom complet</label>
+                            <InputText class="form-control" @bind-Value="profile.FullName" />
+                            <ValidationMessage For="() => profile.FullName" />
+                                </div>
+
+                                <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <InputText class="form-control" @bind-Value="profile.Email" />
+                            <ValidationMessage For="() => profile.Email" />
+                                </div>
+
+                                <div class="col-md-6">
+                            <label class="form-label">Telephone</label>
+                            <InputText class="form-control" @bind-Value="profile.Phone" />
+                            <ValidationMessage For="() => profile.Phone" />
+                                </div>
+
+                                <div class="col-md-6">
+                            <label class="form-label">Role</label>
+                            <div class="dropdown w-100" @onclick:stopPropagation="true">
+                                <button class="btn btn-outline-secondary w-100" type="button" @onclick="ToggleRoleMenu">@profile.Role</button>
+                                @if (roleMenuOpen)
+                                {
+                                    <div class="dropdown-menu show" style="max-height: 180px; overflow:auto; width:100%;">
+                                        @foreach (var rol in roleOptions)
+                                        {
+                                            <a class="dropdown-item" href="#" @onclick="() => PickRole(rol)">@rol</a>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            <small class="text-muted d-block mt-1">Faites défiler la liste pour voir tous les rôles.</small>
+                        </div>
+
+                                <div class="col-12">
+                                    <div class="mt-2 d-flex gap-2">
+                                        <button class="btn btn-primary profile-save-btn" type="submit" disabled="@isSaving">
+                                            @(isSaving ? "Enregistrement..." : "Enregistrer")
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly ProfileInputModel profile = new();
+    private int currentUserId;
+    private bool isLoading = true;
+    private bool isSaving;
+    private bool isError;
+    private string? message;
+    private string? loadError;
+    private readonly string[] roleOptions =
+    new[]
+    {
+        "Admin",
+        "User",
+        "Manager",
+        "Accountant",
+        "Sales",
+        "Supervisor",
+        "Auditor",
+        "Finance",
+        "Support",
+        "Viewer"
+    };
+
+    private bool roleMenuOpen;
+    private void ToggleRoleMenu() => roleMenuOpen = !roleMenuOpen;
+    private void PickRole(string r) { profile.Role = r; roleMenuOpen = false; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
+
+        var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out currentUserId) || currentUserId <= 0)
+        {
+            loadError = "Impossible d'identifier l'utilisateur connecte.";
+            isLoading = false;
+            return;
+        }
+
+        var user = await UserAccountService.GetByIdAsync(currentUserId);
+        if (user is null)
+        {
+            loadError = "Utilisateur introuvable.";
+            isLoading = false;
+            return;
+        }
+
+        profile.UserName = user.UserName;
+        profile.FullName = user.FullName;
+        profile.Email = user.Email;
+        profile.Phone = user.Phone;
+        profile.Role = user.Role;
+        profile.ProfileImageDataUrl = user.ProfileImageDataUrl;
+        
+        // initialize fallback current role options for the dropdown
+        roleMenuOpen = false;
+
+        isLoading = false;
+    }
+
+    private async Task OnProfileImageSelected(InputFileChangeEventArgs args)
+    {
+        message = null;
+        isError = false;
+
+        var file = args.File;
+        if (file is null)
+        {
+            return;
+        }
+
+        const long maxSize = 2 * 1024 * 1024;
+
+        if (file.Size > maxSize)
+        {
+            isError = true;
+            message = "Image trop grande. Taille maximale: 2 MB.";
+            return;
+        }
+
+        var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
+        if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            isError = true;
+            message = "Le fichier selectionne n'est pas une image valide.";
+            return;
+        }
+
+        await using var stream = file.OpenReadStream(maxSize);
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+        var base64 = Convert.ToBase64String(memory.ToArray());
+
+        profile.ProfileImageDataUrl = $"data:{contentType};base64,{base64}";
+    }
+
+    private async Task SaveAsync()
+    {
+        if (isSaving || currentUserId <= 0)
+        {
+            return;
+        }
+
+        isSaving = true;
+        isError = false;
+        message = null;
+
+        try
+        {
+            var updated = await UserAccountService.UpdateProfileAsync(
+                currentUserId,
+                profile.UserName,
+                profile.FullName,
+                profile.Email,
+                profile.Phone,
+                profile.Role,
+                profile.ProfileImageDataUrl);
+
+            profile.UserName = updated.UserName;
+            profile.FullName = updated.FullName;
+            profile.Email = updated.Email;
+            profile.Phone = updated.Phone;
+            profile.Role = updated.Role;
+            profile.ProfileImageDataUrl = updated.ProfileImageDataUrl;
+
+            message = "Profil mis a jour avec succes.";
+        }
+        catch (Exception ex)
+        {
+            isError = true;
+            message = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private sealed class ProfileInputModel
+    {
+        [Required(ErrorMessage = "Le nom d'utilisateur est obligatoire.")]
+        [MinLength(3, ErrorMessage = "Le nom d'utilisateur doit contenir au moins 3 caracteres.")]
+        [MaxLength(50)]
+        public string UserName { get; set; } = string.Empty;
+
+        [MaxLength(100)]
+        public string? FullName { get; set; }
+
+        [MaxLength(100)]
+        [EmailAddress(ErrorMessage = "Adresse email invalide.")]
+        public string? Email { get; set; }
+
+        [MaxLength(20)]
+        [Phone(ErrorMessage = "Numero de telephone invalide.")]
+        public string? Phone { get; set; }
+
+        [Required(ErrorMessage = "Le role est obligatoire.")]
+        [MaxLength(20)]
+        public string Role { get; set; } = string.Empty;
+
+        public string? ProfileImageDataUrl { get; set; }
+    }
+
+    private string GetInitials()
+    {
+        var source = string.IsNullOrWhiteSpace(profile.FullName) ? profile.UserName : profile.FullName;
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return "?";
+        }
+
+        var parts = source
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Take(2)
+            .ToArray();
+
+        var initials = string.Concat(parts.Select(p => p[0])).ToUpper(CultureInfo.InvariantCulture);
+        return string.IsNullOrWhiteSpace(initials) ? "?" : initials;
+    }
+}

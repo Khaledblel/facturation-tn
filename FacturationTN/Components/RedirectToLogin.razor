@@ -1,0 +1,20 @@
+@inject NavigationManager Navigation
+
+@code {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        var returnUrl = Navigation.ToBaseRelativePath(Navigation.Uri);
+        if (!string.IsNullOrWhiteSpace(returnUrl))
+        {
+            Navigation.NavigateTo($"/login?returnUrl=/{Uri.EscapeDataString(returnUrl)}", forceLoad: true);
+            return;
+        }
+
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}

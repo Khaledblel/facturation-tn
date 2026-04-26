@@ -8,42 +8,69 @@
     </div>
 
     <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-        <nav class="nav nav-main flex-column">
-            <div class="nav-item px-2">
-                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
-                    <span>Tableau de bord</span>
-                </NavLink>
-            </div>
+        <AuthorizeView>
+            <Authorized>
+                <nav class="nav nav-main flex-column">
+                    <div class="nav-item px-2">
+                        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
+                            <span>Tableau de bord</span>
+                        </NavLink>
+                    </div>
 
-            <div class="nav-item px-2">
-                <NavLink class="nav-link" href="clients">
-                    <span class="bi bi-people-nav-menu" aria-hidden="true"></span>
-                    <span>Clients</span>
-                </NavLink>
-            </div>
+                    <div class="nav-item px-2">
+                        <NavLink class="nav-link" href="clients">
+                            <span class="bi bi-people-nav-menu" aria-hidden="true"></span>
+                            <span>Clients</span>
+                        </NavLink>
+                    </div>
 
-            <div class="nav-item px-2">
-                <NavLink class="nav-link" href="produits">
-                    <span class="bi bi-box-nav-menu" aria-hidden="true"></span>
-                    <span>Produits</span>
-                </NavLink>
-            </div>
+                    <div class="nav-item px-2">
+                        <NavLink class="nav-link" href="produits">
+                            <span class="bi bi-box-nav-menu" aria-hidden="true"></span>
+                            <span>Produits</span>
+                        </NavLink>
+                    </div>
 
-            <div class="nav-item px-2">
-                <NavLink class="nav-link" href="factures">
-                    <span class="bi bi-receipt-nav-menu" aria-hidden="true"></span>
-                    <span>Factures</span>
-                </NavLink>
-            </div>
+                    <div class="nav-item px-2">
+                        <NavLink class="nav-link" href="factures">
+                            <span class="bi bi-receipt-nav-menu" aria-hidden="true"></span>
+                            <span>Factures</span>
+                        </NavLink>
+                    </div>
 
-            <div class="nav-item px-2">
-                <NavLink class="nav-link" href="parametres">
-                    <span class="bi bi-gear-nav-menu" aria-hidden="true"></span>
-                    <span>Paramètres</span>
-                </NavLink>
-            </div>
-        </nav>
+                    <div class="nav-item px-2">
+                        <NavLink class="nav-link" href="parametres">
+                            <span class="bi bi-gear-nav-menu" aria-hidden="true"></span>
+                            <span>Parametres</span>
+                        </NavLink>
+                    </div>
+
+                    <div class="nav-item px-2">
+                        <NavLink class="nav-link" href="profile">
+                            <span class="bi bi-person-nav-menu" aria-hidden="true"></span>
+                            <span>Mon profil</span>
+                        </NavLink>
+                    </div>
+
+                    <div class="nav-item px-2 mt-3">
+                        <form method="post" action="/auth/logout">
+                            <button type="submit" class="nav-link btn btn-link text-start w-100">Se deconnecter</button>
+                        </form>
+                    </div>
+                </nav>
+            </Authorized>
+            <NotAuthorized>
+                <nav class="nav nav-main flex-column">
+                    <div class="nav-item px-2">
+                        <NavLink class="nav-link" href="login">Connexion</NavLink>
+                    </div>
+                    <div class="nav-item px-2">
+                        <NavLink class="nav-link" href="register">Inscription</NavLink>
+                    </div>
+                </nav>
+            </NotAuthorized>
+        </AuthorizeView>
     </div>
 </aside>
 

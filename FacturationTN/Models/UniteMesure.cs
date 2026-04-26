@@ -15,5 +15,5 @@ public class UniteMesure
     public string Nom { get; set; } = string.Empty;
 
     // ── Navigation ──
-    public ICollection<Produit> Produits { get; set; } = [];
+    public ICollection<Produit> Produits { get; set; } = new List<Produit>();
 }

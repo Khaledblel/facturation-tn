@@ -7,9 +7,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FacturationTN.Services;
 
-public class ClientService(AppDbContext dbContext) : IClientService
+public class ClientService : IClientService
 {
-    private readonly AppDbContext _dbContext = dbContext;
+    private readonly AppDbContext _dbContext;
+
+    public ClientService(AppDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
     private static readonly HashSet<string> DefaultCategories = new(StringComparer.OrdinalIgnoreCase)
     {
         "VIP",

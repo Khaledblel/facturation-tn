@@ -8,9 +8,14 @@ namespace FacturationTN.Services;
 /// <summary>
 /// Accès aux paramètres globaux (ligne singleton en base, Id = 1 après seed).
 /// </summary>
-public class ParametresService(AppDbContext dbContext) : IParametresService
+public class ParametresService : IParametresService
 {
-    private readonly AppDbContext _dbContext = dbContext;
+    private readonly AppDbContext _dbContext;
+
+    public ParametresService(AppDbContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
 
     public async Task<Parametres> GetAsync()
     {

@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
 
     // ── Settings (singleton) ──
     public DbSet<Parametres> Parametres => Set<Parametres>();
+    public DbSet<UserAccount> UserAccounts => Set<UserAccount>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -115,6 +116,14 @@ public class AppDbContext : DbContext
              .WithMany()
              .HasForeignKey(l => l.ProduitId)
              .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ════════════════════════════════════════════════════════
+        // UserAccount
+        // ════════════════════════════════════════════════════════
+        modelBuilder.Entity<UserAccount>(e =>
+        {
+            e.HasIndex(u => u.NormalizedUserName).IsUnique();
         });
 
         // ════════════════════════════════════════════════════════
