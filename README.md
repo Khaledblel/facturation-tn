@@ -26,6 +26,7 @@
 | [Tech Stack](#tech-stack) | Frameworks and tooling |
 | [Project Structure](#project-structure) | Repository layout |
 | [Getting Started](#getting-started) | Setup and first run |
+| [Authentication](#authentication) | Login, register, roles, and default admin |
 | [Configuration](#configuration) | App settings and environment notes |
 | [Database and Migrations](#database-and-migrations) | Schema lifecycle and seed data |
 | [Usage Guide](#usage-guide) | Typical day-to-day flow |
@@ -40,7 +41,7 @@
 
 ## About
 
-FacturationTN is a Blazor Server invoicing application designed for Tunisian billing operations. It centralizes clients, products, invoices, fiscal stamp settings, and VAT handling with a practical back-office user interface.
+FacturationTN is a Blazor Server invoicing application designed for Tunisian billing operations. It centralizes clients, products, invoices, fiscal stamp settings, and VAT handling with a practical workflow.
 
 ### Key Highlights
 
@@ -52,16 +53,19 @@ FacturationTN is a Blazor Server invoicing application designed for Tunisian bil
 | Invoice Numbering | Automatic format: `FA-YYYY-NNNN` |
 | Printable Output | Print-friendly invoice view |
 | Persistent Storage | EF Core + SQLite with startup migration |
+| Authentication | Cookie authentication with login/register/logout + roles |
+| Profile | User profile management (basic account details) |
 
 ## Core Features
 
 | Module | Included |
 |--------|----------|
-| Dashboard | Revenue, invoice stats, VAT, and fiscal stamp summaries |
+| Dashboard | Revenue, invoice stats, VAT, and fiscal stamp summaries (with charts) |
 | Clients | Create, search, filter, update, and review client details |
 | Products | Manage references, pricing, VAT, categories, and units |
 | Invoices | Create/edit invoices, validate, mark paid, cancel, print |
 | Parameters | Fiscal stamp, company profile, logo, and VAT reference rates |
+| Accounts | Register/login/logout, roles, and profile page |
 
 ## Tech Stack
 
@@ -72,6 +76,7 @@ FacturationTN is a Blazor Server invoicing application designed for Tunisian bil
 | Data Access | Entity Framework Core 10 |
 | Database | SQLite |
 | UI Styling | Bootstrap |
+| Auth | Cookie Authentication + ASP.NET Core Authorization |
 | CLI Tooling | `dotnet-ef` (local tool) |
 
 ## Project Structure
@@ -83,7 +88,7 @@ FacturationTN/
 └─ FacturationTN/
 	├─ Components/
 	│  ├─ Layout/          # Main layout, nav menu, print layout, reconnect modal
-	│  └─ Pages/           # Home, Clients, Produits, Factures, Parametres, etc.
+	│  └─ Pages/           # Home, Clients, Produits, Factures, Parametres, Login/Register, Profile, etc.
 	├─ Data/
 	│  └─ AppDbContext.cs  # EF model config + seed data
 	├─ Models/             # Domain models and enums
@@ -92,18 +97,18 @@ FacturationTN/
 	│  └─ *.cs              # Service implementations
 	├─ Migrations/          # EF Core migrations
 	├─ wwwroot/             # Static assets (css, js, images)
-	├─ Program.cs           # Startup, DI, middleware, auto-migrate
+	├─ Program.cs           # Startup, DI, middleware, auto-migrate, auth endpoints
 	└─ FacturationTN.csproj
 ```
 
 ## Architecture Notes
 
-- `Components/Pages`: feature pages (dashboard, clients, products, invoices, parameters).
+- `Components/Pages`: feature pages (dashboard, clients, products, invoices, parameters, authentication, profile).
 - `Services/Interfaces` and `Services`: application service contracts and implementations.
 - `Data/AppDbContext.cs`: EF model configuration, constraints, and seed data.
 - `Models`: domain entities, enums, and lookup entities.
 - `Migrations`: schema history for controlled database evolution.
-- `Program.cs`: DI, middleware, endpoint wiring, and auto-migrate startup behavior.
+- `Program.cs`: DI, middleware, endpoint wiring, auto-migrate startup behavior, and auth endpoints.
 
 ## Getting Started
 
@@ -148,6 +153,25 @@ Default launch profiles expose:
 - HTTP: `http://localhost:5231`
 - HTTPS: `https://localhost:7278`
 
+## Authentication
+
+FacturationTN uses cookie authentication.
+
+### Default admin account (first run)
+
+On first run, if the database has **no users**, the app seeds a default admin account.
+
+- Username: `admin`
+- Password: `Admin@123`
+- Role: `Admin`
+
+> **Security note:** change or remove the default credentials immediately in real deployments.
+
+### Routes / endpoints
+
+- UI pages: `/login`, `/register`
+- POST endpoints: `/auth/login`, `/auth/register`, `/auth/logout`
+
 ## Configuration
 
 Main configuration is in `FacturationTN/appsettings.json`.
@@ -180,7 +204,7 @@ dotnet ef database update
 `AppDbContext` seeds useful defaults:
 
 - Tunisian VAT rates (0, 7, 13, 19)
-- Default system parameters
+- Default system parameters (including fiscal stamp default)
 - Default client categories
 - Default product categories
 - Default units of measure
@@ -194,6 +218,7 @@ After startup, use the side navigation:
 - `Produits`: manage products, categories, units, VAT assignments
 - `Factures`: create and manage invoices and lifecycle state
 - `Paramètres`: configure company details, fiscal stamp amount, and logo
+- `Mon profil`: review/update profile information
 
 Key workflow:
 
@@ -283,7 +308,8 @@ Basic deployment checklist:
 
 ## Known Limitations
 
-- No authentication/authorization layer is currently configured.
+- This is a learning / reference project; the auth implementation is intentionally simple.
+- Default admin credentials are seeded on first run (change them for real deployments).
 - No automated test project is included yet.
 - Basic deployment guidance only; no container or cloud template in repository.
 
